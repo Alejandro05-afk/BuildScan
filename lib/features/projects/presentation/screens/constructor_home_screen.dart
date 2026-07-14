@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class ConstructorHomeScreen extends ConsumerWidget {
   const ConstructorHomeScreen({super.key});
@@ -60,6 +61,21 @@ class ConstructorHomeScreen extends ConsumerWidget {
               icon: Icons.request_quote,
               label: 'Solicitudes de Cotización',
               onTap: () => context.push('/quotes'),
+            ),
+            const SizedBox(height: 12),
+            _MenuButton(
+              icon: Icons.map,
+              label: 'Mapa de Ferreterías',
+              onTap: () => context.push('/map'),
+            ),
+            const SizedBox(height: 12),
+            _MenuButton(
+              icon: Icons.logout,
+              label: 'Cerrar Sesión',
+              onTap: () async {
+                final repo = ref.read(authRepositoryProvider);
+                await repo.cerrarSesion();
+              },
             ),
           ],
         ),

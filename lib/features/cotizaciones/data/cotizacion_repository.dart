@@ -1,9 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CotizacionRepository {
   CotizacionRepository(this.client);
-
   final SupabaseClient client;
 
   Future<void> enviarSolicitudAFerreterias({
@@ -23,69 +21,102 @@ class CotizacionRepository {
     await client.from('solicitudes_cotizacion').insert(solicitudes);
   }
 
-  Future<List<Map<String, dynamic>>> obtenerSolicitudesFerreteria(String ferreteriaId) async {
-    final data = await client
+  Future<List<Map<String, dynamic>>> obtenerSolicitudesFerreteria(String userId) async {
+    // Primero, obtener la ferretería asociada al usuario
+    final ferreterias = await client.from('ferreterias').select('id').eq('user_id', userId).limit(1);
+    if (ferreterias.isEmpty) return [];
+
+    final ferreteriaId = ferreterias[0]['id'];
+
+    // Obtener las solicitudes de esta ferretería con info de la proforma
+    return await client
         .from('solicitudes_cotizacion')
-        .select('*, proformas(*, proyectos(nombre, area_m2, tipo_construccion))')
+        .select('''
+          *,
+          proformas (
+            materiales_json,
+            proyectos (nombre)
+          )
+        ''')
         .eq('ferreteria_id', ferreteriaId)
         .order('created_at', ascending: false);
+  }
 
-    return List<Map<String, dynamic>>.from(data as List);
+  Future<List<Map<String, dynamic>>> obtenerCotizacionesConstructora(String userId) async {
+    // Obtener las proformas de esta constructora, luego las solicitudes asociadas
+    return await client
+        .from('solicitudes_cotizacion')
+        .select('''
+          *,
+          proformas!inner (
+            constructora_id,
+            proyectos (nombre)
+          ),
+          ferreterias (nombre_comercial)
+        ''')
+        .eq('proformas.constructora_id', userId)
+        .order('created_at', ascending: false);
   }
 
   Future<void> responderCotizacion({
     required String solicitudId,
-    required List<Map<String, dynamic>> detalles,
+    required List<Map<String, dynamic>> detalles, // { material_nombre, cantidad, unidad, precio_unitario }
   }) async {
-    // 1. Insertar detalle de materiales cotizados
-    await client.from('detalle_cotizacion').insert(
-      detalles.map((item) => {
+    double totalCotizado = 0;
+    
+    final detallesAInsertar = detalles.map((d) {
+      final cantidad = d['cantidad'] as num;
+      final precio = d['precio_unitario'] as num;
+      totalCotizado += cantidad * precio;
+      
+      return {
         'solicitud_id': solicitudId,
-        'material_id': item['material_id'],
-        'material_nombre': item['material_nombre'],
-        'cantidad': item['cantidad'],
-        'unidad': item['unidad'],
-        'precio_unitario': item['precio_unitario'],
-      }).toList(),
-    );
+        'material_nombre': d['material_nombre'],
+        'cantidad': cantidad,
+        'unidad': d['unidad'],
+        'precio_unitario': precio,
+      };
+    }).toList();
 
-    // 2. Calcular total en cliente para MVP
-    final total = detalles.fold<double>(0, (sum, item) {
-      return sum + ((item['cantidad'] as num).toDouble() *
-          (item['precio_unitario'] as num).toDouble());
-    });
-
-    // 3. Actualizar estado de la solicitud
+    await client.from('detalle_cotizacion').insert(detallesAInsertar);
+    
     await client.from('solicitudes_cotizacion').update({
       'estado': 'cotizada',
-      'total_cotizado': total,
+      'total_cotizado': totalCotizado,
       'fecha_respuesta': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
     }).eq('id', solicitudId);
   }
 
   Future<void> aceptarCotizacion(String solicitudId) async {
     await client.from('solicitudes_cotizacion').update({
       'estado': 'aceptada',
-      'updated_at': DateTime.now().toIso8601String(),
     }).eq('id', solicitudId);
   }
 
-  /// 10.1 Suscripción Realtime para nuevas cotizaciones
-  RealtimeChannel suscribirseACotizaciones(Function(PostgresChangePayload) onUpdate) {
-    final channel = client.channel('cotizaciones-channel');
-
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.update,
-      schema: 'public',
-      table: 'solicitudes_cotizacion',
-      callback: (payload) {
-        // Actualizar lista o mostrar notificación interna en la app
-        debugPrint('Cambio en cotización: ${payload.newRecord}');
-        onUpdate(payload);
-      },
-    ).subscribe();
+  Future<String> guardarProyectoYProforma({
+    required String constructoraId,
+    required String nombreProyecto,
+    required double area,
+    required String tipoConstruccion,
+    required List<Map<String, dynamic>> materialesJson,
+  }) async {
+    // 1. Guardar Proyecto
+    final proyectoResult = await client.from('proyectos').insert({
+      'constructora_id': constructoraId,
+      'nombre': nombreProyecto,
+      'area_m2': area,
+      'tipo_construccion': tipoConstruccion,
+    }).select('id').single();
     
-    return channel;
+    final proyectoId = proyectoResult['id'];
+
+    // 2. Guardar Proforma
+    final proformaResult = await client.from('proformas').insert({
+      'proyecto_id': proyectoId,
+      'constructora_id': constructoraId,
+      'materiales_json': materialesJson,
+    }).select('id').single();
+
+    return proformaResult['id'] as String;
   }
 }

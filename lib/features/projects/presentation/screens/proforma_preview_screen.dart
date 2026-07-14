@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../../proformas/services/proforma_pdf_service.dart';
+import '../../../cotizaciones/presentation/providers/cotizacion_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/project_form_provider.dart';
 
 class ProformaPreviewScreen extends ConsumerWidget {
@@ -94,6 +98,39 @@ class ProformaPreviewScreen extends ConsumerWidget {
                     },
                     icon: const Icon(Icons.share),
                     label: const Text('Compartir'),
+                  ),
+                ),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      try {
+                        final auth = ref.read(authStateProvider).value?.session?.user;
+                        if (auth == null) return;
+                        
+                        final repo = ref.read(cotizacionRepositoryProvider);
+                        final materialesJson = result.materiales.map((m) => {
+                          'nombre': m.nombre,
+                          'cantidad': m.cantidad,
+                          'unidad': m.unidad,
+                        }).toList();
+                        
+                        final proformaId = await repo.guardarProyectoYProforma(
+                          constructoraId: auth.id,
+                          nombreProyecto: form.nombre.isEmpty ? 'Nuevo Proyecto' : form.nombre,
+                          area: result.areaCalculada,
+                          tipoConstruccion: form.tipoConstruccion.name,
+                          materialesJson: materialesJson,
+                        );
+                        
+                        if (context.mounted) {
+                          context.push('/map/$proformaId');
+                        }
+                      } catch (e) {
+                         if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      }
+                    },
+                    icon: const Icon(Icons.store),
+                    label: const Text('Solicitar Cotización'),
                   ),
                 ),
               ],
