@@ -36,4 +36,16 @@ class AuthRepository {
   }
 
   User? get usuarioActual => client.auth.currentUser;
+
+  Future<Map<String, dynamic>?> obtenerPerfil(String userId) async {
+    try {
+      return await client
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .single();
+    } catch (e) {
+      return null;
+    }
+  }
 }
