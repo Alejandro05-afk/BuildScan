@@ -6,6 +6,9 @@ import '../../services/ai_prompt_service.dart';
 import '../../services/construction_image_provider.dart';
 import '../../../projects/presentation/providers/project_form_provider.dart';
 import '../../../calculation/domain/entities/project_dimensions.dart';
+import '../../../projects/presentation/providers/projects_provider.dart';
+import '../../../../core/services/storage_service.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 final aiPromptServiceProvider = Provider<AiPromptService>((ref) {
   return AiPromptService();
@@ -117,8 +120,8 @@ class ConstructionImageScreen extends ConsumerWidget {
   }
 
   Widget _buildImageResult(
-      BuildContext context, WidgetRef ref, File? file) {
-    if (file == null) {
+      BuildContext context, WidgetRef ref, AiImageResult? result) {
+    if (result == null) {
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -136,9 +139,27 @@ class ConstructionImageScreen extends ConsumerWidget {
 
     return Column(
       children: [
+        if (result.source == 'placeholder')
+          Container(
+            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.only(bottom: 12),
+            color: Colors.orange.shade100,
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.orange.shade900),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'No se pudo conectar con la IA. Mostrando imagen ilustrativa de respaldo.',
+                    style: TextStyle(color: Colors.orange.shade900),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.file(file, fit: BoxFit.cover),
+          child: Image.file(result.file, fit: BoxFit.cover),
         ),
         const SizedBox(height: 16),
         Row(
@@ -164,10 +185,51 @@ class ConstructionImageScreen extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Imagen guardada en el proyecto')),
-                  );
+                onPressed: () async {
+                  // Lógica para guardar la imagen (subir a storage y vincular al proyecto si existe)
+                  final currentProject = ref.read(saveProjectProvider).value;
+                  if (currentProject == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Guarda el proyecto primero antes de guardar la imagen.')),
+                    );
+                    return;
+                  }
+                  
+                  try {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Guardando imagen...')),
+                    );
+                    
+                    final storage = ref.read(storageServiceProvider);
+                    final repo = ref.read(projectRepositoryProvider);
+                    final auth = ref.read(authStateProvider).value?.session?.user;
+                    if (auth == null) return;
+                    
+                    final bytes = await result.file.readAsBytes();
+                    final path = await storage.uploadAiImage(
+                      userId: auth.id,
+                      projectId: currentProject.id,
+                      bytes: bytes,
+                    );
+                    
+                    await repo.updateProjectAiImage(
+                      projectId: currentProject.id,
+                      storagePath: path,
+                      source: result.source,
+                    );
+                    
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Imagen guardada exitosamente.')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error al guardar: $e')),
+                      );
+                    }
+                  }
                 },
                 icon: const Icon(Icons.save),
                 label: const Text('Guardar'),

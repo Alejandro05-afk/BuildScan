@@ -15,7 +15,10 @@ import '../../features/projects/presentation/screens/constructor_home_screen.dar
 import '../../features/projects/presentation/screens/project_form_screen.dart';
 import '../../features/projects/presentation/screens/calculation_result_screen.dart';
 import '../../features/projects/presentation/screens/proforma_preview_screen.dart';
+import '../../features/projects/presentation/screens/my_projects_screen.dart';
+import '../../features/projects/presentation/screens/project_detail_screen.dart';
 import '../../features/ai/presentation/screens/construction_image_screen.dart';
+import '../../features/projects/domain/entities/project_entity.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -91,7 +94,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/projects/new', builder: (context, state) => const ProjectFormScreen()),
       GoRoute(path: '/projects/result', builder: (context, state) => const CalculationResultScreen()),
       GoRoute(path: '/projects/image', builder: (context, state) => const ConstructionImageScreen()),
-      GoRoute(path: '/proforma', builder: (context, state) => const ProformaPreviewScreen()),
+      GoRoute(path: '/projects/my_projects', builder: (context, state) => const MyProjectsScreen()),
+      GoRoute(
+        path: '/projects/detail/:id',
+        builder: (context, state) => ProjectDetailScreen(projectId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/proforma',
+        builder: (context, state) {
+          final project = state.extra as ProjectEntity?;
+          return ProformaPreviewScreen(savedProject: project);
+        },
+      ),
     ],
   );
 });

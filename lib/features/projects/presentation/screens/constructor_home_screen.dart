@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:clay_containers/clay_containers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/theme/buildscan_theme.dart';
 
 class ConstructorHomeScreen extends ConsumerWidget {
   const ConstructorHomeScreen({super.key});
@@ -9,24 +11,28 @@ class ConstructorHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
+      backgroundColor: BuildScanColors.background,
       appBar: AppBar(
         title: const Text('BuildScan Constructora'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Card(
+            ClayContainer(
+              color: BuildScanColors.background,
+              borderRadius: 20,
+              depth: 15,
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    Icon(Icons.construction, size: 48, color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(height: 12),
+                    Icon(Icons.construction, size: 64, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(height: 16),
                     Text(
                       'Panel de Constructora',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -38,37 +44,31 @@ class ConstructorHomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             _MenuButton(
               icon: Icons.add_circle_outline,
               label: 'Nuevo Proyecto',
               onTap: () => context.push('/projects/new'),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _MenuButton(
               icon: Icons.list_alt,
               label: 'Mis Proyectos',
-              onTap: () {},
+              onTap: () => context.push('/projects/my_projects'),
             ),
-            const SizedBox(height: 12),
-            _MenuButton(
-              icon: Icons.picture_as_pdf,
-              label: 'Generar Proforma',
-              onTap: () => context.push('/proforma'),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _MenuButton(
               icon: Icons.request_quote,
               label: 'Solicitudes de Cotización',
               onTap: () => context.push('/quotes'),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _MenuButton(
               icon: Icons.map,
               label: 'Mapa de Ferreterías',
               onTap: () => context.push('/map'),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 32),
             _MenuButton(
               icon: Icons.logout,
               label: 'Cerrar Sesión',
@@ -97,12 +97,28 @@ class _MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-        title: Text(label),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
+    return GestureDetector(
+      onTap: onTap,
+      child: ClayContainer(
+        color: BuildScanColors.background,
+        borderRadius: 12,
+        depth: 10,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.grey),
+            ],
+          ),
+        ),
       ),
     );
   }

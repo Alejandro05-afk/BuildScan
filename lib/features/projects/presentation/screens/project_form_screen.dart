@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:clay_containers/clay_containers.dart';
 
 import '../../../calculation/domain/entities/project_dimensions.dart';
 import '../providers/project_form_provider.dart';
+import '../../../../core/widgets/clay_input_field.dart';
+import '../../../../core/widgets/clay_submit_button.dart';
+import '../../../../core/theme/buildscan_theme.dart';
 
 class ProjectFormScreen extends ConsumerWidget {
   const ProjectFormScreen({super.key});
@@ -14,91 +18,97 @@ class ProjectFormScreen extends ConsumerWidget {
     final notifier = ref.read(projectFormProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Nuevo proyecto')),
+      backgroundColor: BuildScanColors.background,
+      appBar: AppBar(
+        title: const Text('Nuevo proyecto'),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextFormField(
-              decoration: const InputDecoration(
-                labelText: 'Nombre del proyecto',
-                border: OutlineInputBorder(),
-              ),
+            ClayInputField(
+              labelText: 'Nombre del proyecto',
+              initialValue: form.nombre,
               onChanged: notifier.updateNombre,
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<ConstructionType>(
-              initialValue: form.tipoConstruccion,
-              decoration: const InputDecoration(
-                labelText: 'Tipo de obra',
-                border: OutlineInputBorder(),
+            const SizedBox(height: 24),
+            
+            ClayContainer(
+              color: BuildScanColors.background,
+              borderRadius: 12,
+              depth: 20,
+              spread: 2,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<ConstructionType>(
+                    isExpanded: true,
+                    value: form.tipoConstruccion,
+                    items: const [
+                      DropdownMenuItem(value: ConstructionType.paredLadrillo, child: Text('Pared de ladrillo')),
+                      DropdownMenuItem(value: ConstructionType.losaHormigon, child: Text('Losa de hormigón')),
+                      DropdownMenuItem(value: ConstructionType.pisoCeramico, child: Text('Piso cerámico')),
+                      DropdownMenuItem(value: ConstructionType.cuartoBasico, child: Text('Cuarto básico')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) notifier.updateTipo(value);
+                    },
+                  ),
+                ),
               ),
-              items: const [
-                DropdownMenuItem(value: ConstructionType.paredLadrillo, child: Text('Pared de ladrillo')),
-                DropdownMenuItem(value: ConstructionType.losaHormigon, child: Text('Losa de hormigón')),
-                DropdownMenuItem(value: ConstructionType.pisoCeramico, child: Text('Piso cerámico')),
-                DropdownMenuItem(value: ConstructionType.cuartoBasico, child: Text('Cuarto básico')),
-              ],
-              onChanged: (value) {
-                if (value != null) notifier.updateTipo(value);
-              },
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              decoration: const InputDecoration(
-                labelText: 'Largo (m)',
-                border: OutlineInputBorder(),
-              ),
+            const SizedBox(height: 24),
+            
+            ClayInputField(
+              labelText: 'Largo (m)',
               keyboardType: TextInputType.number,
+              initialValue: form.largo > 0 ? form.largo.toString() : null,
               onChanged: (value) => notifier.updateMedidas(
                 largo: double.tryParse(value) ?? 0,
               ),
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              decoration: const InputDecoration(
-                labelText: 'Ancho (m)',
-                border: OutlineInputBorder(),
-              ),
+            const SizedBox(height: 16),
+            
+            ClayInputField(
+              labelText: 'Ancho (m)',
               keyboardType: TextInputType.number,
+              initialValue: form.ancho > 0 ? form.ancho.toString() : null,
               onChanged: (value) => notifier.updateMedidas(
                 ancho: double.tryParse(value) ?? 0,
               ),
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              decoration: const InputDecoration(
-                labelText: 'Alto (m) - opcional para paredes',
-                border: OutlineInputBorder(),
-              ),
+            const SizedBox(height: 16),
+            
+            ClayInputField(
+              labelText: 'Alto (m) - Obligatorio para paredes',
               keyboardType: TextInputType.number,
+              initialValue: form.alto > 0 ? form.alto.toString() : null,
               onChanged: (value) => notifier.updateMedidas(
                 alto: double.tryParse(value) ?? 0,
               ),
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              decoration: const InputDecoration(
-                labelText: 'Desperdicio (%)',
-                border: OutlineInputBorder(),
-              ),
+            const SizedBox(height: 16),
+            
+            ClayInputField(
+              labelText: 'Desperdicio (%)',
               keyboardType: TextInputType.number,
-              initialValue: '10',
+              initialValue: form.desperdicio.toStringAsFixed(0),
               onChanged: (value) => notifier.updateDesperdicio(
                 double.tryParse(value) ?? 10,
               ),
             ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
+            const SizedBox(height: 48),
+            
+            ClaySubmitButton(
+              text: 'Calcular materiales',
               onPressed: form.isValid
                   ? () => context.push('/projects/result')
-                  : null,
-              icon: const Icon(Icons.calculate),
-              label: const Text('Calcular materiales'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
+                  : () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Por favor, completa los campos obligatorios correctamente.')),
+                      );
+                    },
             ),
           ],
         ),
