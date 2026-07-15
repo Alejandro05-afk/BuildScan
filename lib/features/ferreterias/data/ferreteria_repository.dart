@@ -19,7 +19,7 @@ class FerreteriaRepository {
   }
 
   Future<void> crearFerreteria(Map<String, dynamic> data) async {
-    await client.from('ferreterias').insert(data);
+    await client.from('ferreterias').upsert(data, onConflict: 'user_id');
   }
 
   Future<void> actualizarFerreteria(String id, Map<String, dynamic> data) async {

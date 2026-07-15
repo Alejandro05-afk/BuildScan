@@ -30,6 +30,47 @@ class _FerreteriaProfileFormScreenState extends ConsumerState<FerreteriaProfileF
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _cargarDatosExistentes();
+  }
+
+  Future<void> _cargarDatosExistentes() async {
+    setState(() => _isLoading = true);
+    try {
+      final repo = ref.read(ferreteriaRepositoryProvider);
+      final authState = ref.read(authStateProvider).value;
+      final userId = authState?.session?.user.id;
+      
+      if (userId == null) return;
+
+      final result = await repo.client
+          .from('ferreterias')
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (result != null) {
+        _nombreComercialCtrl.text = result['nombre_comercial'] ?? '';
+        _rucCtrl.text = result['ruc'] ?? '';
+        _telefonoCtrl.text = result['telefono'] ?? '';
+        _direccionCtrl.text = result['direccion'] ?? '';
+        
+        if (result['latitud'] != null && result['longitud'] != null) {
+          _selectedLocation = LatLng(
+            (result['latitud'] as num).toDouble(),
+            (result['longitud'] as num).toDouble(),
+          );
+        }
+      }
+    } catch (e) {
+      // Si no existe, no hacemos nada, dejamos los campos vacíos
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
   void dispose() {
     _nombreComercialCtrl.dispose();
     _rucCtrl.dispose();

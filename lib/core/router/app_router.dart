@@ -36,6 +36,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final profile = profileAsync.value;
       if (profile == null) return null;
 
+      final isConstructorRoute = state.uri.path.startsWith('/constructor');
+      final isFerreteriaRoute = state.uri.path.startsWith('/ferreteria') || state.uri.path == '/responder-cotizacion';
+      
+      // Bloquear manual navigation
+      if (profile.isConstructora && isFerreteriaRoute) {
+        return '/constructor/home';
+      }
+      
+      if (profile.isFerreteria && isConstructorRoute) {
+        // Podríamos redirigir a /ferreteria/profile si no han completado el perfil,
+        // pero por ahora redirigimos al home.
+        return '/ferreteria/home';
+      }
+
       if (isLoginRoute) {
         if (profile.isConstructora) return '/constructor/home';
         if (profile.isFerreteria) return '/ferreteria/home';

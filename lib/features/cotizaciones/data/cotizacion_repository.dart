@@ -69,58 +69,37 @@ class CotizacionRepository {
 
   Future<void> responderCotizacion({
     required String solicitudId,
-    required List<Map<String, dynamic>> detalles, // { material_nombre, cantidad, unidad, precio_unitario }
+    required List<Map<String, dynamic>> detalles, // { material_nombre, cantidad, unidad, precio_unitario, subtotal }
   }) async {
-    double totalCotizado = 0;
-    
-    final detallesAInsertar = detalles.map((d) {
+    // Calcular subtotales antes de enviar
+    final detallesProcesados = detalles.map((d) {
       final cantidad = d['cantidad'] as num;
       final precio = d['precio_unitario'] as num;
-      totalCotizado += cantidad * precio;
-      
       return {
-        'solicitud_id': solicitudId,
         'material_nombre': d['material_nombre'],
         'cantidad': cantidad,
         'unidad': d['unidad'],
         'precio_unitario': precio,
+        'subtotal': cantidad * precio,
       };
     }).toList();
 
-    await client.from('detalle_cotizacion').insert(detallesAInsertar);
-    
-    await client.from('solicitudes_cotizacion').update({
-      'estado': 'cotizada',
-      'total_cotizado': totalCotizado,
-      'fecha_respuesta': DateTime.now().toIso8601String(),
-    }).eq('id', solicitudId);
+    await client.rpc(
+      'responder_cotizacion',
+      params: {
+        'p_solicitud_id': solicitudId,
+        'p_detalles': detallesProcesados,
+      },
+    );
   }
 
   Future<void> aceptarCotizacion(String solicitudId, String proformaId) async {
-    // Verificar si ya hay una aceptada
-    final aceptadas = await client
-        .from('solicitudes_cotizacion')
-        .select('id')
-        .eq('proforma_id', proformaId)
-        .eq('estado', 'aceptada')
-        .limit(1);
-
-    if (aceptadas.isNotEmpty) {
-      throw Exception('Ya tienes una cotización aceptada para esta proforma.');
-    }
-
-    // Aceptar la cotización elegida
-    await client.from('solicitudes_cotizacion').update({
-      'estado': 'aceptada',
-    }).eq('id', solicitudId);
-
-    // Cancelar/Rechazar automáticamente el resto
-    await client.from('solicitudes_cotizacion').update({
-      'estado': 'rechazada',
-    })
-    .eq('proforma_id', proformaId)
-    .neq('id', solicitudId)
-    .neq('estado', 'rechazada');
+    await client.rpc(
+      'aceptar_cotizacion',
+      params: {
+        'p_solicitud_id': solicitudId,
+      },
+    );
   }
 
   Future<void> rechazarCotizacion(String solicitudId) async {
