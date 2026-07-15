@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clay_containers/clay_containers.dart';
+import '../../../../core/widgets/clay_container_alias.dart';
 
 import '../../../calculation/domain/entities/project_dimensions.dart';
 import '../providers/project_form_provider.dart';

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:clay_containers/clay_containers.dart';
 import '../../core/theme/buildscan_theme.dart';
 
 class ClayInputField extends StatefulWidget {
@@ -31,37 +30,46 @@ class _ClayInputFieldState extends State<ClayInputField> {
 
   @override
   Widget build(BuildContext context) {
-    return ClayContainer(
-      color: BuildScanColors.background,
-      borderRadius: 12,
-      depth: 20,
-      spread: 2,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-        child: TextFormField(
-          controller: widget.controller,
-          initialValue: widget.initialValue,
-          onChanged: widget.onChanged,
-          obscureText: widget.isPassword ? _obscureText : false,
-          keyboardType: widget.keyboardType,
-          validator: widget.validator,
-          decoration: InputDecoration(
-            labelText: widget.labelText,
-            border: InputBorder.none,
-            suffixIcon: widget.isPassword
-                ? IconButton(
-                    icon: Icon(
-                      _obscureText ? Icons.visibility : Icons.visibility_off,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureText = !_obscureText;
-                      });
-                    },
-                  )
-                : null,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFECECEC), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.02),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
+        ],
+      ),
+      child: TextFormField(
+        controller: widget.controller,
+        initialValue: widget.initialValue,
+        onChanged: widget.onChanged,
+        obscureText: widget.isPassword ? _obscureText : false,
+        keyboardType: widget.keyboardType,
+        validator: widget.validator,
+        decoration: InputDecoration(
+          labelText: widget.labelText,
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+          suffixIcon: widget.isPassword
+              ? IconButton(
+                  icon: Icon(
+                    _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                )
+              : null,
         ),
       ),
     );

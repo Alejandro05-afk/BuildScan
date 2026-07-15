@@ -1,4 +1,5 @@
 import '../entities/project_entity.dart';
+import '../entities/building_project.dart';
 
 abstract class ProjectRepository {
   Future<ProjectEntity> createProject(ProjectEntity project);
@@ -10,4 +11,9 @@ abstract class ProjectRepository {
     required String storagePath,
     required String source,
   });
+
+  // New methods for Complete Building Projects
+  Future<BuildingProject> createCompleteBuildingProject(BuildingProject project);
+  Future<BuildingProject> updateCompleteBuildingProject(BuildingProject project);
+  Future<List<BuildingProject>> getProjectsByScope(String scope);
 }

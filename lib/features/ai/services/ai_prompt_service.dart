@@ -42,4 +42,21 @@ class AiPromptService {
     if (area < 80) return 'residential unit';
     return 'medium-scale project';
   }
+
+  // New method for Complete Building Projects
+  String buildCompleteBuildingPrompt({
+    required String buildingType,
+    required double area,
+    required int floors,
+    required String finishLevel,
+    required String constructionSystem,
+    String? customStyle,
+  }) {
+    return 'Architectural concept render of a $buildingType, '
+        'approximately ${area.toStringAsFixed(1)} square meters, $floors floors, '
+        '$constructionSystem structure, $finishLevel finishes, '
+        '${customStyle ?? 'contemporary architecture'}, urban context, '
+        'professional architectural visualization, realistic construction materials, '
+        'clean lines, natural lighting, exterior perspective';
+  }
 }
