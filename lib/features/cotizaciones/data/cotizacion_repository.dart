@@ -108,30 +108,25 @@ class CotizacionRepository {
     }).eq('id', solicitudId);
   }
 
-  Future<String> guardarProyectoYProforma({
+  Future<String> crearProforma({
+    required String proyectoId,
     required String constructoraId,
-    required String nombreProyecto,
-    required double area,
-    required String tipoConstruccion,
+    required String nombre,
     required List<Map<String, dynamic>> materialesJson,
   }) async {
-    // 1. Guardar Proyecto
-    final proyectoResult = await client.from('proyectos').insert({
-      'constructora_id': constructoraId,
-      'nombre': nombreProyecto,
-      'area_m2': area,
-      'tipo_construccion': tipoConstruccion,
-    }).select('id').single();
-    
-    final proyectoId = proyectoResult['id'];
-
-    // 2. Guardar Proforma
     final proformaResult = await client.from('proformas').insert({
       'proyecto_id': proyectoId,
       'constructora_id': constructoraId,
+      'nombre': nombre,
       'materiales_json': materialesJson,
     }).select('id').single();
 
     return proformaResult['id'] as String;
+  }
+
+  Future<void> updateProformaPdfPath(String proformaId, String pdfPath) async {
+    await client.from('proformas').update({
+      'pdf_path': pdfPath,
+    }).eq('id', proformaId);
   }
 }
