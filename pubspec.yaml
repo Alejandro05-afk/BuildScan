@@ -50,6 +50,7 @@ dependencies:
   path_provider: ^2.1.6
   mime: ^2.0.0
   image_picker: ^1.2.3
+  clay_containers: ^0.3.4
 
 dev_dependencies:
   flutter_test:

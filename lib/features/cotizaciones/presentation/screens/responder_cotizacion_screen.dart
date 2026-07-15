@@ -74,6 +74,22 @@ class _ResponderCotizacionScreenState extends ConsumerState<ResponderCotizacionS
     }
   }
 
+  Future<void> _rechazarSolicitud() async {
+    setState(() => _isLoading = true);
+    try {
+      final repo = ref.read(cotizacionRepositoryProvider);
+      await repo.rechazarCotizacion(widget.solicitud['id']);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Solicitud rechazada')));
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,11 +130,21 @@ class _ResponderCotizacionScreenState extends ConsumerState<ResponderCotizacionS
             padding: const EdgeInsets.all(16.0),
             child: _isLoading 
                 ? const CircularProgressIndicator()
-                : ElevatedButton.icon(
-                    onPressed: _enviarCotizacion,
-                    icon: const Icon(Icons.send),
-                    label: const Text('Enviar Precios'),
-                    style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+                : Column(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _enviarCotizacion,
+                        icon: const Icon(Icons.send),
+                        label: const Text('Enviar Precios'),
+                        style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: _rechazarSolicitud,
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        label: const Text('Rechazar Solicitud', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
                   ),
           ),
         ],

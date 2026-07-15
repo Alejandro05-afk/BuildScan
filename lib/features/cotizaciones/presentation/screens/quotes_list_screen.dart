@@ -10,7 +10,7 @@ class QuotesListScreen extends ConsumerWidget {
     final cotizacionesAsync = ref.watch(cotizacionesConstructoraProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mis Solicitudes y Cotizaciones')),
+      appBar: AppBar(title: const Text('Comparar y Administrar Ofertas')),
       body: cotizacionesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
@@ -19,52 +19,83 @@ class QuotesListScreen extends ConsumerWidget {
             return const Center(child: Text('Aún no has enviado solicitudes de cotización.'));
           }
 
+          // Group by proforma_id
+          final Map<String, List<Map<String, dynamic>>> grouped = {};
+          for (final cot in cotizaciones) {
+            final proformaId = cot['proforma_id'];
+            grouped.putIfAbsent(proformaId, () => []).add(cot);
+          }
+
           return ListView.builder(
-            itemCount: cotizaciones.length,
+            itemCount: grouped.keys.length,
             itemBuilder: (context, index) {
-              final cot = cotizaciones[index];
-              final proforma = cot['proformas'];
+              final proformaId = grouped.keys.elementAt(index);
+              final offers = grouped[proformaId]!;
+              final proforma = offers.first['proformas'];
               final proyecto = proforma?['proyectos'];
               final nombreProyecto = proyecto?['nombre'] ?? proforma?['nombre'] ?? 'Sin nombre';
-              final ferreteria = cot['ferreterias'];
-              final estado = cot['estado'];
-              final total = cot['total_cotizado'];
 
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                elevation: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Proyecto: $nombreProyecto', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text('Ferretería: ${ferreteria?['nombre_comercial'] ?? 'Desconocida'}'),
-                      Text('Estado: $estado'),
-                      if (estado == 'cotizada' || estado == 'aceptada')
-                        Text('Total: \$${total?.toStringAsFixed(2) ?? '0.00'}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                      if (estado == 'cotizada') ...[
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                              onPressed: () async {
-                                final repo = ref.read(cotizacionRepositoryProvider);
-                                await repo.aceptarCotizacion(cot['id']);
-                                ref.refresh(cotizacionesConstructoraProvider);
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cotización aceptada')));
-                                }
-                              },
-                              child: const Text('Aceptar Oferta', style: TextStyle(color: Colors.white)),
+                elevation: 4,
+                child: ExpansionTile(
+                  title: Text('Proyecto: $nombreProyecto', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text('${offers.length} solicitud(es) enviada(s)'),
+                  children: offers.map((cot) {
+                    final ferreteria = cot['ferreterias'];
+                    final estado = cot['estado'];
+                    final total = cot['total_cotizado'];
+                    final isCotizada = estado == 'cotizada';
+
+                    return ListTile(
+                      title: Text(ferreteria?['nombre_comercial'] ?? 'Desconocida'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Estado: ${estado.toUpperCase()}'),
+                          if (isCotizada || estado == 'aceptada')
+                            Text(
+                              'Total Oferta: \$${total?.toStringAsFixed(2) ?? '0.00'}', 
+                              style: TextStyle(color: estado == 'aceptada' ? Colors.green : Colors.blue, fontWeight: FontWeight.bold),
                             ),
-                          ],
-                        )
-                      ]
-                    ],
-                  ),
+                          if (isCotizada) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                                    onPressed: () async {
+                                      try {
+                                        await ref.read(cotizacionRepositoryProvider).aceptarCotizacion(cot['id'], proformaId);
+                                        ref.refresh(cotizacionesConstructoraProvider);
+                                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cotización aceptada, las demás fueron rechazadas.')));
+                                      } catch (e) {
+                                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                      }
+                                    },
+                                    child: const Text('Aceptar', style: TextStyle(color: Colors.white)),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: OutlinedButton(
+                                    style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                                    onPressed: () async {
+                                      await ref.read(cotizacionRepositoryProvider).rechazarCotizacion(cot['id']);
+                                      ref.refresh(cotizacionesConstructoraProvider);
+                                    },
+                                    child: const Text('Rechazar'),
+                                  ),
+                                ),
+                              ],
+                            )
+                          ]
+                        ],
+                      ),
+                      isThreeLine: true,
+                    );
+                  }).toList(),
                 ),
               );
             },

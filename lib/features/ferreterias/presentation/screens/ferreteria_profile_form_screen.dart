@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
+import 'package:clay_containers/clay_containers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../mapas/data/location_service.dart';
 import '../providers/ferreteria_provider.dart';
+import '../../../../core/widgets/clay_input_field.dart';
+import '../../../../core/widgets/clay_submit_button.dart';
 
 class FerreteriaProfileFormScreen extends ConsumerStatefulWidget {
   const FerreteriaProfileFormScreen({super.key});
@@ -94,98 +97,124 @@ class _FerreteriaProfileFormScreenState extends ConsumerState<FerreteriaProfileF
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Configurar Ferretería')),
+      appBar: AppBar(
+        title: const Text('Configurar Ferretería'),
+        elevation: 0,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(24.0),
               child: Form(
                 key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(
+                    ClayInputField(
                       controller: _nombreComercialCtrl,
-                      decoration: const InputDecoration(labelText: 'Nombre comercial', prefixIcon: Icon(Icons.store)),
+                      labelText: 'Nombre comercial',
                       validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
+                    const SizedBox(height: 24),
+                    ClayInputField(
                       controller: _rucCtrl,
-                      decoration: const InputDecoration(labelText: 'RUC (Opcional)', prefixIcon: Icon(Icons.assignment)),
+                      labelText: 'RUC (Opcional)',
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
+                    const SizedBox(height: 24),
+                    ClayInputField(
                       controller: _telefonoCtrl,
-                      decoration: const InputDecoration(labelText: 'Teléfono', prefixIcon: Icon(Icons.phone)),
+                      labelText: 'Teléfono',
                       keyboardType: TextInputType.phone,
                       validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
+                    const SizedBox(height: 24),
+                    ClayInputField(
                       controller: _direccionCtrl,
-                      decoration: const InputDecoration(labelText: 'Dirección', prefixIcon: Icon(Icons.location_on)),
+                      labelText: 'Dirección',
                       validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
+                    const SizedBox(height: 24),
+                    ClayInputField(
                       controller: _descripcionCtrl,
-                      decoration: const InputDecoration(labelText: 'Descripción', prefixIcon: Icon(Icons.description)),
-                      maxLines: 3,
+                      labelText: 'Descripción',
                     ),
-                    const SizedBox(height: 24),
-                    const Text('Ubicación de la Ferretería', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    ElevatedButton.icon(
-                      onPressed: _usarUbicacionActual,
-                      icon: const Icon(Icons.my_location),
-                      label: const Text('Usar mi ubicación actual'),
-                    ),
-                    const SizedBox(height: 12),
-                    if (_selectedLocation != null)
-                      SizedBox(
-                        height: 200,
-                        child: FlutterMap(
-                          options: MapOptions(
-                            initialCenter: _selectedLocation!,
-                            initialZoom: 15,
-                            onTap: (tapPosition, point) {
-                              setState(() => _selectedLocation = point);
-                            },
+                    const SizedBox(height: 32),
+                    
+                    const Text('Ubicación de la Ferretería', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.teal)),
+                    const SizedBox(height: 16),
+                    
+                    GestureDetector(
+                      onTap: _usarUbicacionActual,
+                      child: ClayContainer(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: 12,
+                        depth: 20,
+                        spread: 2,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.my_location, color: Colors.teal),
+                              SizedBox(width: 8),
+                              Text('Usar mi ubicación actual', style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold)),
+                            ],
                           ),
-                          children: [
-                            TileLayer(
-                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'com.buildscan.app',
-                            ),
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: _selectedLocation!,
-                                  width: 40,
-                                  height: 40,
-                                  child: const Icon(Icons.location_pin, color: Colors.red, size: 40),
-                                ),
-                              ],
-                            ),
-                          ],
                         ),
-                      )
-                    else
-                      Container(
-                        height: 200,
-                        color: Colors.grey.shade200,
-                        alignment: Alignment.center,
-                        child: const Text('Toca "Usar mi ubicación actual" o selecciona en el mapa', textAlign: TextAlign.center),
                       ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _guardarFerreteria,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text('Guardar Ferretería', style: TextStyle(fontSize: 16)),
                     ),
+                    
+                    const SizedBox(height: 24),
+                    ClayContainer(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: 12,
+                      depth: 10,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: SizedBox(
+                          height: 200,
+                          child: _selectedLocation != null
+                              ? FlutterMap(
+                                  options: MapOptions(
+                                    initialCenter: _selectedLocation!,
+                                    initialZoom: 15,
+                                    onTap: (tapPosition, point) {
+                                      setState(() => _selectedLocation = point);
+                                    },
+                                  ),
+                                  children: [
+                                    TileLayer(
+                                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                      userAgentPackageName: 'com.buildscan.app',
+                                    ),
+                                    MarkerLayer(
+                                      markers: [
+                                        Marker(
+                                          point: _selectedLocation!,
+                                          width: 40,
+                                          height: 40,
+                                          child: const Icon(Icons.location_pin, color: Colors.red, size: 40),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                )
+                              : Container(
+                                  color: Colors.transparent,
+                                  alignment: Alignment.center,
+                                  child: const Text('Toca "Usar mi ubicación actual" o selecciona en el mapa', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                                ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    ClaySubmitButton(
+                      onPressed: _guardarFerreteria,
+                      text: 'Guardar Perfil',
+                      isLoading: _isLoading,
+                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),

@@ -9,16 +9,25 @@ class CotizacionRepository {
     required List<String> ferreteriasIds,
     String? mensaje,
   }) async {
-    final solicitudes = ferreteriasIds.map((ferreteriaId) {
-      return {
-        'proforma_id': proformaId,
-        'ferreteria_id': ferreteriaId,
-        'estado': 'pendiente',
-        'mensaje': mensaje,
-      };
-    }).toList();
+    // Evitar solicitudes duplicadas
+    for (final ferreteriaId in ferreteriasIds) {
+      final existentes = await client
+          .from('solicitudes_cotizacion')
+          .select('id')
+          .eq('proforma_id', proformaId)
+          .eq('ferreteria_id', ferreteriaId)
+          .inFilter('estado', ['pendiente', 'cotizada', 'aceptada'])
+          .limit(1);
 
-    await client.from('solicitudes_cotizacion').insert(solicitudes);
+      if (existentes.isEmpty) {
+        await client.from('solicitudes_cotizacion').insert({
+          'proforma_id': proformaId,
+          'ferreteria_id': ferreteriaId,
+          'estado': 'pendiente',
+          'mensaje': mensaje,
+        });
+      }
+    }
   }
 
   Future<List<Map<String, dynamic>>> obtenerSolicitudesFerreteria(String userId) async {
@@ -87,9 +96,36 @@ class CotizacionRepository {
     }).eq('id', solicitudId);
   }
 
-  Future<void> aceptarCotizacion(String solicitudId) async {
+  Future<void> aceptarCotizacion(String solicitudId, String proformaId) async {
+    // Verificar si ya hay una aceptada
+    final aceptadas = await client
+        .from('solicitudes_cotizacion')
+        .select('id')
+        .eq('proforma_id', proformaId)
+        .eq('estado', 'aceptada')
+        .limit(1);
+
+    if (aceptadas.isNotEmpty) {
+      throw Exception('Ya tienes una cotización aceptada para esta proforma.');
+    }
+
+    // Aceptar la cotización elegida
     await client.from('solicitudes_cotizacion').update({
       'estado': 'aceptada',
+    }).eq('id', solicitudId);
+
+    // Cancelar/Rechazar automáticamente el resto
+    await client.from('solicitudes_cotizacion').update({
+      'estado': 'rechazada',
+    })
+    .eq('proforma_id', proformaId)
+    .neq('id', solicitudId)
+    .neq('estado', 'rechazada');
+  }
+
+  Future<void> rechazarCotizacion(String solicitudId) async {
+    await client.from('solicitudes_cotizacion').update({
+      'estado': 'rechazada',
     }).eq('id', solicitudId);
   }
 
