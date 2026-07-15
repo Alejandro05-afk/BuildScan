@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/supabase.ts","./src/vite-env.d.ts","./src/pages/confirmpage.tsx","./src/pages/resetpasswordpage.tsx"],"version":"5.8.3"}

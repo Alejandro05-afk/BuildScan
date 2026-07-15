@@ -35,6 +35,13 @@ class AuthRepository {
     await client.auth.signOut();
   }
 
+  Future<void> restablecerContrasena(String email) {
+    return client.auth.resetPasswordForEmail(
+      email,
+      redirectTo: 'https://buildscan-app.vercel.app/reset-password',
+    );
+  }
+
   User? get usuarioActual => client.auth.currentUser;
 
   Future<Map<String, dynamic>?> obtenerPerfil(String userId) async {

@@ -90,6 +90,12 @@ class ConstructionImageScreen extends ConsumerWidget {
                     CircularProgressIndicator(),
                     SizedBox(height: 16),
                     Text('La IA está diseñando tu proyecto...'),
+                    SizedBox(height: 8),
+                    Text(
+                      'La primera vez puede tardar hasta 2 minutos mientras el modelo se activa.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
                   ],
                 ),
               ),
