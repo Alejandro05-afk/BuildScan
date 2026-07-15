@@ -14,6 +14,7 @@ class AuthRepository {
     return client.auth.signUp(
       email: email,
       password: password,
+      emailRedirectTo: 'https://web-confirm-eta.vercel.app/confirm',
       data: {
         'nombre': nombre,
         'rol': rol, // constructora o ferreteria
@@ -37,8 +38,8 @@ class AuthRepository {
 
   Future<void> restablecerContrasena(String email) {
     return client.auth.resetPasswordForEmail(
-      email,
-      redirectTo: 'https://buildscan-app.vercel.app/reset-password',
+      email.trim(),
+      redirectTo: 'https://web-confirm-eta.vercel.app/reset-password',
     );
   }
 

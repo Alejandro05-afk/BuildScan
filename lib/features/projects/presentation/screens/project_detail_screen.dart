@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clay_containers/clay_containers.dart';
+import '../../../../core/widgets/clay_container_alias.dart';
 import '../providers/projects_provider.dart';
 
 final projectDetailProvider = FutureProvider.family.autoDispose((ref, String id) async {

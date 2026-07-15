@@ -1,0 +1,22 @@
+-- Add columns to support complete building projects
+-- Using TEXT for enums to simplify migration and avoid tight coupling in DB
+
+ALTER TABLE public.proyectos
+ADD COLUMN IF NOT EXISTS project_scope TEXT DEFAULT 'constructionElement',
+ADD COLUMN IF NOT EXISTS building_type TEXT,
+ADD COLUMN IF NOT EXISTS total_area NUMERIC(10,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS floors INTEGER DEFAULT 1,
+ADD COLUMN IF NOT EXISTS floor_height NUMERIC(10,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS construction_system TEXT,
+ADD COLUMN IF NOT EXISTS finish_level TEXT,
+ADD COLUMN IF NOT EXISTS bedrooms INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS bathrooms INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS kitchens INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS parking_spaces INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS has_roof_slab BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS has_exterior_walls BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS waste_percentage NUMERIC(10,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS custom_description TEXT,
+ADD COLUMN IF NOT EXISTS distribution_json JSONB,
+ADD COLUMN IF NOT EXISTS assumptions_json JSONB,
+ADD COLUMN IF NOT EXISTS warnings_json JSONB;

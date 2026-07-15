@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/widgets/clay_input_field.dart';
 import '../../../../core/widgets/clay_submit_button.dart';
+import '../../../../core/widgets/password_strength_indicator.dart';
+import '../../../../core/widgets/password_strength_indicator.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -90,9 +92,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   controller: _passwordController,
                   labelText: 'Contraseña',
                   isPassword: true,
-                  validator: (v) => (v == null || v.length < 6) ? 'Mínimo 6 caracteres' : null,
+                  validator: (v) => (v == null || v.length < 8) ? 'Mínimo 8 caracteres' : null,
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 12),
+                AnimatedBuilder(
+                  animation: _passwordController,
+                  builder: (context, _) {
+                    return PasswordStrengthIndicator(password: _passwordController.text);
+                  },
+                ),
+                const SizedBox(height: 32),
                 ClaySubmitButton(
                   onPressed: _registrar,
                   text: 'Registrarse',

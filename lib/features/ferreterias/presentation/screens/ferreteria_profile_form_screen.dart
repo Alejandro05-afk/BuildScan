@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clay_containers/clay_containers.dart';
+import '../../../../core/widgets/clay_container_alias.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../mapas/data/location_service.dart';
 import '../providers/ferreteria_provider.dart';

@@ -19,6 +19,8 @@ import '../../features/projects/presentation/screens/proforma_preview_screen.dar
 import '../../features/projects/presentation/screens/my_projects_screen.dart';
 import '../../features/projects/presentation/screens/project_detail_screen.dart';
 import '../../features/ai/presentation/screens/construction_image_screen.dart';
+import '../../features/projects/presentation/screens/building_project_form_screen.dart';
+import '../../features/projects/presentation/screens/building_calculation_result_screen.dart';
 import '../../features/projects/domain/entities/project_entity.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -94,6 +96,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const QuotesListScreen(),
       ),
       GoRoute(path: '/projects/new', builder: (context, state) => const ProjectFormScreen()),
+      GoRoute(path: '/projects/building/new', builder: (context, state) => const BuildingProjectFormScreen()),
+      GoRoute(path: '/projects/building/result', builder: (context, state) => const BuildingCalculationResultScreen()),
       GoRoute(path: '/projects/result', builder: (context, state) => const CalculationResultScreen()),
       GoRoute(path: '/projects/image', builder: (context, state) => const ConstructionImageScreen()),
       GoRoute(path: '/projects/my_projects', builder: (context, state) => const MyProjectsScreen()),

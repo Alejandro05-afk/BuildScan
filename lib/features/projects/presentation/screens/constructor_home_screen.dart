@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clay_containers/clay_containers.dart';
+import '../../../../core/widgets/clay_container_alias.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/buildscan_theme.dart';
 
@@ -45,12 +45,6 @@ class ConstructorHomeScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 32),
-            _MenuButton(
-              icon: Icons.add_circle_outline,
-              label: 'Nuevo Proyecto',
-              onTap: () => context.push('/projects/new'),
-            ),
-            const SizedBox(height: 16),
             _MenuButton(
               icon: Icons.list_alt,
               label: 'Mis Proyectos',

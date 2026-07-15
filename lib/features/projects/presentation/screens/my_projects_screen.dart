@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clay_containers/clay_containers.dart';
 import '../providers/projects_provider.dart';
 
 class MyProjectsScreen extends ConsumerWidget {
@@ -30,12 +29,10 @@ class MyProjectsScreen extends ConsumerWidget {
               final proj = projects[index];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
-                child: GestureDetector(
-                  onTap: () => context.push('/projects/detail/${proj.id}'),
-                  child: ClayContainer(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: 16,
-                    depth: 10,
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => context.push('/projects/detail/${proj.id}'),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -75,7 +72,43 @@ class MyProjectsScreen extends ConsumerWidget {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/projects/new'),
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            shape: const RoundedRectangleBorder(
+            ),
+            builder: (ctx) => Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('¿Qué deseas calcular?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal)),
+                  const SizedBox(height: 24),
+                  ListTile(
+                    leading: const Icon(Icons.home_work_outlined, color: Colors.teal, size: 32),
+                    title: const Text('Edificación Completa', style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: const Text('Casas, edificios, bodegas, etc.'),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      context.push('/projects/building/new');
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.foundation_outlined, color: Colors.orange, size: 32),
+                    title: const Text('Elemento Constructivo', style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: const Text('Paredes, losas, pisos específicos.'),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      context.push('/projects/new');
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          );
+        },
         label: const Text('Nuevo Proyecto'),
         icon: const Icon(Icons.add),
         backgroundColor: Colors.teal,
@@ -101,24 +134,35 @@ class MyProjectsScreen extends ConsumerWidget {
 
   Widget _buildStatusBadge(String status) {
     Color color;
+    Color bgColor;
+    String text;
+    
     switch (status) {
       case 'saved':
-        color = Colors.blue;
+        color = Colors.blue.shade700;
+        bgColor = Colors.blue.shade50;
+        text = 'Guardado';
         break;
       case 'quotation_requested':
-        color = Colors.orange;
+        color = Colors.orange.shade800;
+        bgColor = Colors.orange.shade50;
+        text = 'Cotizando';
         break;
       default:
-        color = Colors.grey;
+        color = Colors.grey.shade700;
+        bgColor = Colors.grey.shade100;
+        text = status.toUpperCase();
     }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        color: bgColor,
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(
-        status.toUpperCase(),
+        text,
         style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
       ),
     );

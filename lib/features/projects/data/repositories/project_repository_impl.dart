@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/project_entity.dart';
+import '../../domain/entities/building_project.dart';
 import '../../domain/repositories/project_repository.dart';
 import '../models/project_model.dart';
 
@@ -90,5 +91,38 @@ class ProjectRepositoryImpl implements ProjectRepository {
       'ai_image_path': storagePath,
       'ai_image_source': source,
     }).eq('id', projectId);
+  }
+
+  @override
+  Future<BuildingProject> createCompleteBuildingProject(BuildingProject project) async {
+    final map = project.toMap();
+    final response = await _client.from('proyectos').insert(map).select().single();
+    return BuildingProject.fromMap(response);
+  }
+
+  @override
+  Future<BuildingProject> updateCompleteBuildingProject(BuildingProject project) async {
+    final map = project.toMap();
+    map.remove('id'); // Avoid updating ID
+    
+    final response = await _client
+        .from('proyectos')
+        .update(map)
+        .eq('id', project.id as Object)
+        .select()
+        .single();
+    
+    return BuildingProject.fromMap(response);
+  }
+
+  @override
+  Future<List<BuildingProject>> getProjectsByScope(String scope) async {
+    final response = await _client
+        .from('proyectos')
+        .select()
+        .eq('project_scope', scope)
+        .order('created_at', ascending: false);
+    
+    return response.map((e) => BuildingProject.fromMap(e)).toList();
   }
 }
