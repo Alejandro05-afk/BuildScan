@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/ferreterias/presentation/screens/ferreteria_home_screen.dart';
 import '../../features/ferreterias/presentation/screens/ferreteria_profile_form_screen.dart';
 import '../../features/cotizaciones/presentation/screens/responder_cotizacion_screen.dart';
@@ -30,7 +31,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (authState.isLoading || profileAsync.isLoading) return null;
 
       final isAuth = authState.value?.session != null;
-      final isLoginRoute = state.uri.path == '/login' || state.uri.path == '/register';
+      final isLoginRoute = state.uri.path == '/login' || state.uri.path == '/register' || state.uri.path == '/forgot-password';
 
       if (!isAuth) {
         return isLoginRoute ? null : '/login';
@@ -63,6 +64,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
+      GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),
       GoRoute(path: '/constructor/home', builder: (context, state) => const ConstructorHomeScreen()),
       GoRoute(
         path: '/map',
