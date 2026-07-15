@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/widgets/clay_input_field.dart';
+import '../../../../core/widgets/clay_submit_button.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -11,6 +13,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _nombreController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -18,10 +21,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _isLoading = false;
 
   Future<void> _registrar() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty || _nombreController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor llena todos los campos')));
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
     
     setState(() => _isLoading = true);
     try {
@@ -32,7 +32,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         nombre: _nombreController.text,
         rol: _rolSeleccionado,
       );
-      // Autologin triggers GoRouter redirect if email confirmation is off
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registro exitoso')));
       }
@@ -48,45 +47,60 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registro')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            DropdownButtonFormField<String>(
-              value: _rolSeleccionado,
-              decoration: const InputDecoration(labelText: 'Tipo de Cuenta'),
-              items: const [
-                DropdownMenuItem(value: 'constructora', child: Text('Constructora')),
-                DropdownMenuItem(value: 'ferreteria', child: Text('Ferretería')),
+      appBar: AppBar(
+        title: const Text('Registro'),
+        elevation: 0,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              children: [
+                DropdownButtonFormField<String>(
+                  value: _rolSeleccionado,
+                  decoration: const InputDecoration(labelText: 'Tipo de Cuenta'),
+                  items: const [
+                    DropdownMenuItem(value: 'constructora', child: Text('Constructora')),
+                    DropdownMenuItem(value: 'ferreteria', child: Text('Ferretería')),
+                  ],
+                  onChanged: (value) => setState(() => _rolSeleccionado = value!),
+                ),
+                const SizedBox(height: 24),
+                ClayInputField(
+                  controller: _nombreController,
+                  labelText: 'Nombre o Razón Social',
+                  validator: (v) => (v == null || v.isEmpty) ? 'Requerido' : null,
+                ),
+                const SizedBox(height: 24),
+                ClayInputField(
+                  controller: _emailController,
+                  labelText: 'Email',
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Requerido';
+                    if (!v.contains('@')) return 'Email inválido';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+                ClayInputField(
+                  controller: _passwordController,
+                  labelText: 'Contraseña',
+                  isPassword: true,
+                  validator: (v) => (v == null || v.length < 6) ? 'Mínimo 6 caracteres' : null,
+                ),
+                const SizedBox(height: 40),
+                ClaySubmitButton(
+                  onPressed: _registrar,
+                  text: 'Registrarse',
+                  isLoading: _isLoading,
+                ),
               ],
-              onChanged: (value) => setState(() => _rolSeleccionado = value!),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _nombreController,
-              decoration: const InputDecoration(labelText: 'Nombre o Razón Social'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 24),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _registrar,
-                    child: const Text('Registrarse'),
-                  ),
-          ],
+          ),
         ),
       ),
     );

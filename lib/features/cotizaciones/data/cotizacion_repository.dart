@@ -9,16 +9,25 @@ class CotizacionRepository {
     required List<String> ferreteriasIds,
     String? mensaje,
   }) async {
-    final solicitudes = ferreteriasIds.map((ferreteriaId) {
-      return {
-        'proforma_id': proformaId,
-        'ferreteria_id': ferreteriaId,
-        'estado': 'pendiente',
-        'mensaje': mensaje,
-      };
-    }).toList();
+    // Evitar solicitudes duplicadas
+    for (final ferreteriaId in ferreteriasIds) {
+      final existentes = await client
+          .from('solicitudes_cotizacion')
+          .select('id')
+          .eq('proforma_id', proformaId)
+          .eq('ferreteria_id', ferreteriaId)
+          .inFilter('estado', ['pendiente', 'cotizada', 'aceptada'])
+          .limit(1);
 
-    await client.from('solicitudes_cotizacion').insert(solicitudes);
+      if (existentes.isEmpty) {
+        await client.from('solicitudes_cotizacion').insert({
+          'proforma_id': proformaId,
+          'ferreteria_id': ferreteriaId,
+          'estado': 'pendiente',
+          'mensaje': mensaje,
+        });
+      }
+    }
   }
 
   Future<List<Map<String, dynamic>>> obtenerSolicitudesFerreteria(String userId) async {
@@ -60,36 +69,42 @@ class CotizacionRepository {
 
   Future<void> responderCotizacion({
     required String solicitudId,
-    required List<Map<String, dynamic>> detalles, // { material_nombre, cantidad, unidad, precio_unitario }
+    required List<Map<String, dynamic>> detalles, // { material_nombre, cantidad, unidad, precio_unitario, subtotal }
   }) async {
-    double totalCotizado = 0;
-    
-    final detallesAInsertar = detalles.map((d) {
+    // Calcular subtotales antes de enviar
+    final detallesProcesados = detalles.map((d) {
       final cantidad = d['cantidad'] as num;
       final precio = d['precio_unitario'] as num;
-      totalCotizado += cantidad * precio;
-      
       return {
-        'solicitud_id': solicitudId,
         'material_nombre': d['material_nombre'],
         'cantidad': cantidad,
         'unidad': d['unidad'],
         'precio_unitario': precio,
+        'subtotal': cantidad * precio,
       };
     }).toList();
 
-    await client.from('detalle_cotizacion').insert(detallesAInsertar);
-    
-    await client.from('solicitudes_cotizacion').update({
-      'estado': 'cotizada',
-      'total_cotizado': totalCotizado,
-      'fecha_respuesta': DateTime.now().toIso8601String(),
-    }).eq('id', solicitudId);
+    await client.rpc(
+      'responder_cotizacion',
+      params: {
+        'p_solicitud_id': solicitudId,
+        'p_detalles': detallesProcesados,
+      },
+    );
   }
 
-  Future<void> aceptarCotizacion(String solicitudId) async {
+  Future<void> aceptarCotizacion(String solicitudId, String proformaId) async {
+    await client.rpc(
+      'aceptar_cotizacion',
+      params: {
+        'p_solicitud_id': solicitudId,
+      },
+    );
+  }
+
+  Future<void> rechazarCotizacion(String solicitudId) async {
     await client.from('solicitudes_cotizacion').update({
-      'estado': 'aceptada',
+      'estado': 'rechazada',
     }).eq('id', solicitudId);
   }
 
