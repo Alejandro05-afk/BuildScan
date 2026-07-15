@@ -1,42 +1,23 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 
-type ViewState = 'loading' | 'form' | 'submitting' | 'success' | 'error'
-
 export default function ResetPasswordPage() {
-  const [searchParams] = useSearchParams()
-  const [view, setView] = useState<ViewState>('loading')
+  const [view, setView] = useState<'loading' | 'form' | 'success' | 'error'>('loading')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-  const [hasSession, setHasSession] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    const accessToken = searchParams.get('access_token')
-    const refreshToken = searchParams.get('refresh_token')
-    const type = searchParams.get('type')
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setView('form')
+      }
+    })
 
-    if (type === 'recovery' && accessToken && refreshToken) {
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      }).then(({ error }) => {
-        if (error) {
-          setView('error')
-          setErrorMsg('El enlace de restablecimiento no es válido o ya expiró.')
-        } else {
-          setHasSession(true)
-          setView('form')
-        }
-      })
-    } else {
-      setView('error')
-      setErrorMsg('Enlace de restablecimiento inválido.')
-    }
-  }, [searchParams])
+    return () => subscription.unsubscribe()
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -48,10 +29,6 @@ export default function ResetPasswordPage() {
     }
     if (password !== confirmPassword) {
       setErrorMsg('Las contraseñas no coinciden.')
-      return
-    }
-    if (!hasSession) {
-      setErrorMsg('Sesión no válida. Solicita un nuevo enlace.')
       return
     }
 
@@ -81,7 +58,7 @@ export default function ResetPasswordPage() {
         {view === 'form' && (
           <>
             <h1>Nueva contraseña</h1>
-            <p className="subtext">Escribe tu nueva contraseña abaixo.</p>
+            <p className="subtext">Escribe tu nueva contraseña abajo.</p>
             <form onSubmit={handleSubmit}>
               <div className="input-group">
                 <label htmlFor="password">Nueva contraseña</label>

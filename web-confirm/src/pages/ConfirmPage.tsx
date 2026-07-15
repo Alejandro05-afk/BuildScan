@@ -1,53 +1,82 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 
 export default function ConfirmPage() {
-  const [searchParams] = useSearchParams()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
-  const [message, setMessage] = useState('')
+  const [message, setMessage] = useState('Estamos confirmando tu cuenta...')
 
   useEffect(() => {
-    const token = searchParams.get('token')
-    const type = searchParams.get('type')
+    confirmEmail()
+  }, [])
 
-    if (type === 'signup' && token) {
-      supabase.auth.verifyOtp({ token_hash: token, type: 'signup' })
-        .then(({ error }) => {
-          if (error) {
-            setStatus('error')
-            setMessage('El enlace de confirmación no es válido o ya expiró.')
-          } else {
-            setStatus('success')
-          }
-        })
-    } else {
+  async function confirmEmail() {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const tokenHash = params.get('token_hash')
+      const type = params.get('type')
+
+      if (!tokenHash || type !== 'email') {
+        setStatus('error')
+        setMessage('El enlace no contiene un token de confirmación válido.')
+        return
+      }
+
+      const { data, error } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: 'email',
+      })
+
+      if (error) {
+        console.error('Error al confirmar correo:', error)
+        setStatus('error')
+        setMessage('El enlace es inválido, expiró o ya fue utilizado.')
+        return
+      }
+
+      if (!data.user) {
+        setStatus('error')
+        setMessage('No fue posible obtener el usuario confirmado.')
+        return
+      }
+
       setStatus('success')
+      setMessage(
+        'Tu cuenta de BuildScan fue confirmada correctamente. Ya puedes iniciar sesión en la aplicación.'
+      )
+
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error(error)
+      setStatus('error')
+      setMessage('Ocurrió un problema al confirmar tu cuenta.')
     }
-  }, [searchParams])
+  }
 
   return (
     <div className="container">
       <div className="card">
         <div className="logo">BuildScan</div>
+
         {status === 'loading' && (
           <>
             <div className="spinner" />
-            <p>Verificando tu cuenta...</p>
+            <p>{message}</p>
           </>
         )}
+
         {status === 'success' && (
           <>
             <div className="icon-success">&#10003;</div>
             <h1>Cuenta confirmada</h1>
-            <p>Tu cuenta ha sido verificada exitosamente.</p>
+            <p>{message}</p>
             <p className="subtext">Vuelve a la aplicación para continuar.</p>
           </>
         )}
+
         {status === 'error' && (
           <>
             <div className="icon-error">&#10007;</div>
-            <h1>Error</h1>
+            <h1>No pudimos confirmar tu cuenta</h1>
             <p>{message}</p>
             <p className="subtext">Intenta registrarte de nuevo desde la app.</p>
           </>

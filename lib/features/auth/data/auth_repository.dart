@@ -38,7 +38,7 @@ class AuthRepository {
   Future<void> restablecerContrasena(String email) {
     return client.auth.resetPasswordForEmail(
       email,
-      redirectTo: 'https://buildscan-app.vercel.app/reset-password',
+      redirectTo: 'https://web-confirm-eta.vercel.app/reset-password',
     );
   }
 
