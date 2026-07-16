@@ -13,18 +13,61 @@ class AiPromptService {
   String buildConstructionPrompt({
     required ElementType type,
     required ProjectDimensions dimensions,
+    String nombre = '',
     String style = 'moderna',
   }) {
     final area = dimensions.areaPiso;
     final typeLabel = _elementTypeLabel(type);
     final sizeLabel = _sizeLabel(area);
 
-    return 'Architectural concept render of a $typeLabel, '
-        '$sizeLabel for ${area.toStringAsFixed(1)} square meters, '
-        '${dimensions.largo}m x ${dimensions.ancho}m layout, '
-        'functional design, realistic construction materials common in Ecuador, '
-        '$style style, exterior perspective, professional architectural visualization, '
-        'clean lines, natural lighting, urban context';
+    final buf = StringBuffer();
+    buf.write('Architectural concept render of a $typeLabel');
+    if (nombre.isNotEmpty) buf.write(' named "$nombre"');
+    buf.write(', $sizeLabel for ${area.toStringAsFixed(1)} square meters, ');
+    buf.write('${dimensions.largo}m x ${dimensions.ancho}m layout');
+
+    if (dimensions.alto != null && dimensions.alto! > 0) {
+      buf.write(', ${dimensions.alto}m height');
+    }
+    if (dimensions.thickness != null && dimensions.thickness! > 0) {
+      buf.write(', ${dimensions.thickness! * 100}cm thickness');
+    }
+    if (dimensions.doors != null && dimensions.doors! > 0) {
+      buf.write(', ${dimensions.doors} door${dimensions.doors! > 1 ? 's' : ''}');
+    }
+    if (dimensions.windows != null && dimensions.windows! > 0) {
+      buf.write(', ${dimensions.windows} window${dimensions.windows! > 1 ? 's' : ''}');
+    }
+    if (dimensions.blockType != null && dimensions.blockType!.isNotEmpty) {
+      buf.write(', ${dimensions.blockType} blocks');
+    }
+    if (dimensions.concreteType != null && dimensions.concreteType!.isNotEmpty) {
+      buf.write(', ${dimensions.concreteType} concrete');
+    }
+    if (dimensions.roofType != null && dimensions.roofType!.isNotEmpty) {
+      buf.write(', ${dimensions.roofType} roof');
+    }
+    if (dimensions.roofSlope != null && dimensions.roofSlope! > 0) {
+      buf.write(', ${dimensions.roofSlope}° slope');
+    }
+    if (dimensions.eave != null && dimensions.eave! > 0) {
+      buf.write(', ${dimensions.eave}m eaves');
+    }
+    if (dimensions.finishType != null && dimensions.finishType!.isNotEmpty) {
+      buf.write(', ${dimensions.finishType} finishes');
+    }
+    if (dimensions.installationType != null && dimensions.installationType!.isNotEmpty) {
+      buf.write(', ${dimensions.installationType} installation');
+    }
+    if (dimensions.tileWidth != null && dimensions.tileLength != null) {
+      buf.write(', ${dimensions.tileWidth}x${dimensions.tileLength}cm tiles');
+    }
+
+    buf.write(', functional design, realistic construction materials common in Ecuador, ');
+    buf.write('$style style, exterior perspective, professional architectural visualization, ');
+    buf.write('clean lines, natural lighting, urban context');
+
+    return buf.toString();
   }
 
   // ── Complete building prompt – context-aware ──────────────────────────────
