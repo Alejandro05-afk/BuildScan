@@ -46,7 +46,7 @@ class BuildingCalculationResultScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSummaryCard(state.form.name, state.form.totalArea, state.form.buildingType.toString().split('.').last),
+            _buildSummaryCard(state.form.name, state.form.totalArea, _translateType(state.form.buildingType.toString().split('.').last)),
             const SizedBox(height: 16),
             ...groupedMaterials.entries.map((entry) {
               return _buildCategoryPanel(entry.key, entry.value);
@@ -56,6 +56,20 @@ class BuildingCalculationResultScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             Row(
               children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.push('/projects/building/image'),
+                    icon: const Icon(Icons.auto_awesome),
+                    label: const Text('Visualizar IA'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: ClaySubmitButton(
                     text: 'Guardar Proyecto',
@@ -129,7 +143,7 @@ class BuildingCalculationResultScreen extends ConsumerWidget {
             title: Text(mat.materialName),
             subtitle: Text(mat.criteria),
             trailing: Text(
-              '${mat.quantity.toStringAsFixed(1)} ${mat.unit}',
+              '${mat.quantity.toStringAsFixed(0)} ${mat.unit}',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF00897B)),
             ),
           );
@@ -162,6 +176,19 @@ class BuildingCalculationResultScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _translateType(String type) {
+    switch (type) {
+      case 'house': return 'Casa';
+      case 'residentialBuilding': return 'Edificio Residencial';
+      case 'commercialBuilding': return 'Edificio Comercial';
+      case 'commercialSpace': return 'Local Comercial';
+      case 'office': return 'Oficina';
+      case 'warehouse': return 'Bodega / Industrial';
+      case 'custom': return 'Construcción Personalizada';
+      default: return type;
+    }
   }
 
   Future<void> _guardarYNavegarAProforma(BuildContext context, WidgetRef ref, dynamic state) async {

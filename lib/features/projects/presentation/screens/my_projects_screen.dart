@@ -39,9 +39,47 @@ class MyProjectsScreen extends ConsumerWidget {
               itemCount: projects.length,
               itemBuilder: (context, index) {
                 final proj = projects[index];
-                return Padding(
+                  return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: Card(
+                  child: Dismissible(
+                    key: ValueKey(proj.id),
+                    direction: DismissDirection.endToStart,
+                    confirmDismiss: (direction) async {
+                      return await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Eliminar proyecto'),
+                          content: Text('¿Eliminar "${proj.nombre}"? Esta acción no se puede deshacer.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancelar'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    onDismissed: (direction) async {
+                      final repo = ref.read(projectRepositoryProvider);
+                      await repo.deleteProject(proj.id);
+                      ref.invalidate(myProjectsProvider);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('"${proj.nombre}" eliminado')),
+                        );
+                      }
+                    },
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 24),
+                      color: Colors.red,
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    child: Card(
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
                       onTap: () => context.push('/projects/detail/${proj.id}'),
@@ -77,6 +115,7 @@ class MyProjectsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
+                  ),
                   ),
                 );
               },

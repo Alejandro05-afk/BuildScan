@@ -105,7 +105,7 @@ class _ProformaPreviewScreenState extends ConsumerState<ProformaPreviewScreen> {
                     ),
                     ...result.materiales.map((m) => TableRow(children: [
                           Padding(padding: const EdgeInsets.all(12), child: Text(m.nombre)),
-                          Padding(padding: const EdgeInsets.all(12), child: Text(m.cantidad.toStringAsFixed(2))),
+                          Padding(padding: const EdgeInsets.all(12), child: Text(m.cantidad.toStringAsFixed(0))),
                           Padding(padding: const EdgeInsets.all(12), child: Text(m.unidad)),
                         ])),
                   ],

@@ -81,7 +81,7 @@ class CalculationResultScreen extends ConsumerWidget {
                   title: Text(m.nombre, style: const TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: Text(m.observacion.isNotEmpty ? m.observacion : ''),
                   trailing: Text(
-                    '${m.cantidad.toStringAsFixed(2)} ${m.unidad}',
+                    '${m.cantidad.toStringAsFixed(0)} ${m.unidad}',
                     style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.teal, fontSize: 16),
                   ),
                 ),

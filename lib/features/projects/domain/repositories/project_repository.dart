@@ -6,6 +6,7 @@ abstract class ProjectRepository {
   Future<List<ProjectEntity>> getMyProjects(String constructoraId);
   Future<ProjectEntity?> getProjectById(String projectId);
   Future<ProjectEntity> updateProject(ProjectEntity project);
+  Future<void> deleteProject(String projectId);
   Future<void> updateProjectAiImage({
     required String projectId,
     required String storagePath,

@@ -40,7 +40,7 @@ class CompleteBuildingMaterialEngine {
 // ─── Shared helpers ──────────────────────────────────────────────────────────
 
 double _applyWaste(double quantity, double wastePercentage) =>
-    quantity * (1 + wastePercentage / 100);
+    (quantity * (1 + wastePercentage / 100)).ceilToDouble();
 
 /// Estimates perimeter of a square building with the given area.
 double _estimatedPerimeter(double areaPerFloor) {

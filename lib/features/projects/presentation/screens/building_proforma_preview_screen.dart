@@ -22,6 +22,23 @@ class BuildingProformaPreviewScreen extends ConsumerStatefulWidget {
 class _BuildingProformaPreviewScreenState extends ConsumerState<BuildingProformaPreviewScreen> {
   bool _isLoading = false;
 
+  static const Map<String, String> _typeLabels = {
+    'house': 'Casa',
+    'residentialBuilding': 'Edificio Residencial',
+    'commercialBuilding': 'Edificio Comercial',
+    'commercialSpace': 'Local Comercial',
+    'office': 'Oficina',
+    'warehouse': 'Bodega / Industrial',
+    'custom': 'Construcción Personalizada',
+  };
+
+  static const Map<String, String> _systemLabels = {
+    'reinforcedConcrete': 'Hormigón Armado',
+    'steelStructure': 'Estructura Metálica',
+    'mixed': 'Mixto',
+    'masonry': 'Mampostería',
+  };
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(buildingProjectFormProvider);
@@ -63,10 +80,14 @@ class _BuildingProformaPreviewScreenState extends ConsumerState<BuildingProforma
                         ),
                         const Divider(),
                         Text('Proyecto: ${project.name}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                        Text('ID: ${project.id}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
                         const SizedBox(height: 8),
-                        Text('Área: ${project.totalArea.toStringAsFixed(2)} m²'),
-                        Text('Desperdicio: ${project.wastePercentage.toStringAsFixed(0)}%'),
+                        Text('Tipo: ${_typeLabels[project.buildingType.name] ?? project.buildingType.name}'),
+                        Text('Área: ${project.totalArea.toStringAsFixed(0)} m²'),
+                        Text('Plantas: ${project.floors}'),
+                        Text('Sistema: ${_systemLabels[project.constructionSystem.name] ?? project.constructionSystem.name}'),
+                        if (project.bedrooms != null) Text('Dormitorios: ${project.bedrooms}'),
+                        if (project.bathrooms != null) Text('Baños: ${project.bathrooms}'),
+                        if (project.clearHeight != null) Text('Altura libre: ${project.clearHeight} m'),
                         const SizedBox(height: 12),
                         ClayContainer(
                           color: Theme.of(context).colorScheme.surface,
@@ -105,7 +126,7 @@ class _BuildingProformaPreviewScreenState extends ConsumerState<BuildingProforma
                     ),
                     ...calc.materials.map((m) => TableRow(children: [
                           Padding(padding: const EdgeInsets.all(12), child: Text(m.materialName)),
-                          Padding(padding: const EdgeInsets.all(12), child: Text(m.quantity.toStringAsFixed(2))),
+                          Padding(padding: const EdgeInsets.all(12), child: Text(m.quantity.toStringAsFixed(0))),
                           Padding(padding: const EdgeInsets.all(12), child: Text(m.unit)),
                         ])),
                   ],

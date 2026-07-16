@@ -93,6 +93,11 @@ class ProjectRepositoryImpl implements ProjectRepository {
   }
 
   @override
+  Future<void> deleteProject(String projectId) async {
+    await _client.from('proyectos').delete().eq('id', projectId);
+  }
+
+  @override
   Future<void> updateProjectAiImage({
     required String projectId,
     required String storagePath,

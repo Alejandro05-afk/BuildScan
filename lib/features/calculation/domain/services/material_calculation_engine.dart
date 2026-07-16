@@ -58,12 +58,12 @@ class MaterialCalculationEngine {
         MaterialEstimate(
           nombre: 'Cemento',
           unidad: 'sacos',
-          cantidad: netArea * 0.25 * factor,
+          cantidad: (netArea * 0.25 * factor).ceilToDouble(),
         ),
         MaterialEstimate(
           nombre: 'Arena',
           unidad: 'kg',
-          cantidad: netArea * 0.05 * factor * 1500,
+          cantidad: (netArea * 0.05 * factor * 1500).ceilToDouble(),
         ),
       ],
     );
@@ -78,16 +78,16 @@ class MaterialCalculationEngine {
       desperdicio: (factor - 1) * 100,
       sugerencia: suggestion,
       materiales: [
-        MaterialEstimate(nombre: 'Cerámica / Porcelanato', unidad: 'm²', cantidad: area * factor),
+        MaterialEstimate(nombre: 'Cerámica / Porcelanato', unidad: 'm²', cantidad: (area * factor).ceilToDouble()),
         MaterialEstimate(
           nombre: 'Cemento cola',
           unidad: 'sacos',
-          cantidad: area * 0.25 * factor,
+          cantidad: (area * 0.25 * factor).ceilToDouble(),
         ),
         MaterialEstimate(
           nombre: 'Boquilla / Fragua',
           unidad: 'kg',
-          cantidad: area * 0.05 * factor,
+          cantidad: (area * 0.05 * factor).ceilToDouble(),
         ),
       ],
     );
@@ -108,22 +108,22 @@ class MaterialCalculationEngine {
         MaterialEstimate(
           nombre: 'Cemento',
           unidad: 'sacos',
-          cantidad: volume * 8.5 * factor, // ~8.5 sacos/m³ hormigón f\'c=210
+          cantidad: (volume * 8.5 * factor).ceilToDouble(),
         ),
         MaterialEstimate(
           nombre: 'Arena',
           unidad: 'm³',
-          cantidad: volume * 0.55 * factor,
+          cantidad: (volume * 0.55 * factor).ceilToDouble(),
         ),
         MaterialEstimate(
           nombre: 'Ripio',
           unidad: 'm³',
-          cantidad: volume * 0.65 * factor,
+          cantidad: (volume * 0.65 * factor).ceilToDouble(),
         ),
         MaterialEstimate(
           nombre: 'Varilla corrugada',
           unidad: 'kg',
-          cantidad: d.areaPiso * 8 * factor, // ~8 kg/m² referencial
+          cantidad: (d.areaPiso * 8 * factor).ceilToDouble(),
         ),
       ],
     );
@@ -154,17 +154,17 @@ class MaterialCalculationEngine {
         MaterialEstimate(
           nombre: 'Cemento (mortero)',
           unidad: 'sacos',
-          cantidad: netWallArea * 0.25 * factor,
+          cantidad: (netWallArea * 0.25 * factor).ceilToDouble(),
         ),
         MaterialEstimate(
           nombre: 'Cerámica (piso)',
           unidad: 'm²',
-          cantidad: floorArea * factor,
+          cantidad: (floorArea * factor).ceilToDouble(),
         ),
         MaterialEstimate(
           nombre: 'Cemento cola (piso)',
           unidad: 'sacos',
-          cantidad: floorArea * 0.25 * factor,
+          cantidad: (floorArea * 0.25 * factor).ceilToDouble(),
         ),
       ],
     );
@@ -187,12 +187,12 @@ class MaterialCalculationEngine {
         MaterialEstimate(
           nombre: 'Material de cubierta',
           unidad: 'm²',
-          cantidad: actualRoofArea * factor,
+          cantidad: (actualRoofArea * factor).ceilToDouble(),
         ),
         MaterialEstimate(
           nombre: 'Estructura de soporte (madera/metal)',
           unidad: 'm²',
-          cantidad: actualRoofArea * 0.3 * factor, // referencial
+          cantidad: (actualRoofArea * 0.3 * factor).ceilToDouble(),
         ),
       ],
     );
