@@ -47,7 +47,7 @@ class ProjectFormNotifier extends Notifier<ProjectFormState> {
     final next = state.copyWith(
       largo: largo ?? state.largo,
       ancho: ancho ?? state.ancho,
-      alto: alto == null ? state.alto : alto, // Preserve previous alto if not passed
+      alto: alto ?? state.alto, // Preserve previous alto if not passed
     );
     state = next.copyWith(isValid: _validate(next));
   }
