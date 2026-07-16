@@ -13,6 +13,14 @@ class MyProjectsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mis Proyectos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.invalidate(myProjectsProvider);
+            },
+          )
+        ],
       ),
       body: projectsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

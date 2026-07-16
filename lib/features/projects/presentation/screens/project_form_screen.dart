@@ -183,7 +183,7 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
                 labelText: '${cfg.labelFor(ElementField.tileWidth)} (m)',
                 keyboardType: TextInputType.number,
                 onChanged: (v) =>
-                    notifier.updateStringField(/* tileWidth stored differently */ ),
+                    notifier.updateStringField(tileWidth: double.tryParse(v)),
               ),
               const SizedBox(height: 16),
             ],
@@ -193,7 +193,7 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
                 controller: _tileLengthCtr,
                 labelText: '${cfg.labelFor(ElementField.tileLength)} (m)',
                 keyboardType: TextInputType.number,
-                onChanged: (v) => notifier.updateStringField(),
+                onChanged: (v) => notifier.updateStringField(tileLength: double.tryParse(v)),
               ),
               const SizedBox(height: 16),
             ],
@@ -235,7 +235,7 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
                 labelText: '${cfg.labelFor(ElementField.roofSlope)} (%)',
                 keyboardType: TextInputType.number,
                 onChanged: (v) =>
-                    notifier.updateStringField(), // roofSlope update via dedicated call
+                    notifier.updateStringField(roofSlope: double.tryParse(v)),
               ),
               const SizedBox(height: 16),
             ],
@@ -246,7 +246,7 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
                 controller: _eaveCtr,
                 labelText: '${cfg.labelFor(ElementField.eave)} (m)',
                 keyboardType: TextInputType.number,
-                onChanged: (v) => notifier.updateStringField(),
+                onChanged: (v) => notifier.updateStringField(eave: double.tryParse(v)),
               ),
               const SizedBox(height: 16),
             ],

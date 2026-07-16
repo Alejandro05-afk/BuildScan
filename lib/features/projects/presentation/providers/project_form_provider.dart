@@ -47,7 +47,7 @@ class ProjectFormNotifier extends Notifier<ProjectFormState> {
     final next = state.copyWith(
       largo: largo ?? state.largo,
       ancho: ancho ?? state.ancho,
-      alto: alto, // explicit null OK here since caller passes null when clearing
+      alto: alto == null ? state.alto : alto, // Preserve previous alto if not passed
     );
     state = next.copyWith(isValid: _validate(next));
   }
@@ -79,6 +79,10 @@ class ProjectFormNotifier extends Notifier<ProjectFormState> {
     String? roofType,
     String? installationType,
     String? finishType,
+    double? roofSlope,
+    double? eave,
+    double? tileWidth,
+    double? tileLength,
   }) {
     ProjectFormState next = state;
     if (blockType != null) next = next.copyWith(blockType: blockType);
@@ -86,6 +90,10 @@ class ProjectFormNotifier extends Notifier<ProjectFormState> {
     if (roofType != null) next = next.copyWith(roofType: roofType);
     if (installationType != null) next = next.copyWith(installationType: installationType);
     if (finishType != null) next = next.copyWith(finishType: finishType);
+    if (roofSlope != null) next = next.copyWith(roofSlope: roofSlope);
+    if (eave != null) next = next.copyWith(eave: eave);
+    if (tileWidth != null) next = next.copyWith(tileWidth: tileWidth);
+    if (tileLength != null) next = next.copyWith(tileLength: tileLength);
     state = next.copyWith(isValid: _validate(next));
   }
 

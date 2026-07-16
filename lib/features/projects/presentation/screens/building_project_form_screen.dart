@@ -90,35 +90,53 @@ class BuildingProjectFormScreen extends ConsumerWidget {
   }
 
   Widget _buildStepContent(BuildContext context, state, BuildingProjectFormNotifier notifier) {
-    if (state.errorMessage != null) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.red.shade100,
-        ),
-        child: Text(
-          state.errorMessage!,
-          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-        ),
-      );
-    }
+    // Render error as a bottom/top banner or helper, but keep the step visible
+    final errorWidget = state.errorMessage != null
+        ? Container(
+            margin: const EdgeInsets.bottom(16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red.shade100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              state.errorMessage!,
+              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          )
+        : const SizedBox();
 
+    Widget currentWidget;
     switch (state.currentStep) {
       case 1:
-        return _buildGeneralDataStep(state, notifier);
+        currentWidget = _buildGeneralDataStep(state, notifier);
+        break;
       case 2:
-        return _buildSuggestionStep(state, notifier);
+        currentWidget = _buildSuggestionStep(state, notifier);
+        break;
       case 3:
-        return _buildSpacesStep(state, notifier);
+        currentWidget = _buildSpacesStep(state, notifier);
+        break;
       case 4:
-        return _buildSystemAndFinishesStep(state, notifier);
+        currentWidget = _buildSystemAndFinishesStep(state, notifier);
+        break;
       case 5:
-        return _buildDistributionStep(state, notifier);
+        currentWidget = _buildDistributionStep(state, notifier);
+        break;
       case 6:
-        return _buildSummaryStep(state);
+        currentWidget = _buildSummaryStep(state);
+        break;
       default:
-        return const SizedBox();
+        currentWidget = const SizedBox();
     }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        errorWidget,
+        currentWidget,
+      ],
+    );
   }
 
   Widget _buildGeneralDataStep(state, BuildingProjectFormNotifier notifier) {

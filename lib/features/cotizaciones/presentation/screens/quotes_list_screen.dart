@@ -10,7 +10,17 @@ class QuotesListScreen extends ConsumerWidget {
     final cotizacionesAsync = ref.watch(cotizacionesConstructoraProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Comparar y Administrar Ofertas')),
+      appBar: AppBar(
+        title: const Text('Comparar y Administrar Ofertas'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.invalidate(cotizacionesConstructoraProvider);
+            },
+          )
+        ],
+      ),
       body: cotizacionesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
