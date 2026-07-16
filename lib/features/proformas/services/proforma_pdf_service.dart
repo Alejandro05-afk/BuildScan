@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import '../../projects/domain/entities/building_project.dart';
 import '../../projects/domain/entities/project_entity.dart';
 import '../../calculation/domain/entities/material_estimate.dart';
 import 'package:intl/intl.dart';
@@ -161,7 +162,7 @@ class ProformaPdfService {
           ),
           pw.SizedBox(height: 20),
           
-          // Project Details
+          // Project Details – dynamic fields based on BuildingTypePolicy
           pw.Container(
             padding: const pw.EdgeInsets.all(10),
             decoration: pw.BoxDecoration(
@@ -173,8 +174,13 @@ class ProformaPdfService {
               children: [
                 pw.Text('Proyecto: ${project.name}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 5),
-                pw.Text('Tipo: ${project.buildingType.toString().split('.').last}'),
-                pw.Text('Área: ${project.totalArea} m² / ${project.floors} plantas'),
+                pw.Text('Tipo: ${_buildingTypeLabel(project.buildingType)}'),
+                pw.Text('Área construida: ${project.totalArea.toStringAsFixed(0)} m²'),
+                pw.Text('Plantas: ${project.floors}'),
+                pw.Text('Sistema constructivo: ${project.constructionSystem.name}'),
+                pw.Text('Nivel de acabados: ${project.finishLevel.name}'),
+                // Dynamic fields from policy:
+                ..._buildingProjectDetails(project),
               ],
             ),
           ),
@@ -213,5 +219,65 @@ class ProformaPdfService {
     );
  
     return pdf.save();
+  }
+  /// Returns policy-driven detail rows for a complete building project PDF.
+  /// Omits null values and fields invisible for the building type.
+  List<pw.Widget> _buildingProjectDetails(BuildingProject project) {
+    final cfg = configForType(project.buildingType.policyKey);
+    final rows = <pw.Widget>[];
+
+    void addRow(String label, String value) {
+      rows.add(pw.Text('$label: $value'));
+    }
+
+    if (cfg.isVisible(BuildingField.bedrooms) && project.bedrooms != null) {
+      addRow(cfg.labelFor(BuildingField.bedrooms), '${project.bedrooms}');
+    }
+    if (cfg.isVisible(BuildingField.bathrooms) && project.bathrooms != null) {
+      addRow(cfg.labelFor(BuildingField.bathrooms), '${project.bathrooms}');
+    }
+    if (cfg.isVisible(BuildingField.kitchens) && project.kitchens != null) {
+      addRow(cfg.labelFor(BuildingField.kitchens), '${project.kitchens}');
+    }
+    if (cfg.isVisible(BuildingField.apartmentsPerFloor) &&
+        project.apartmentsPerFloor != null) {
+      addRow(cfg.labelFor(BuildingField.apartmentsPerFloor),
+          '${project.apartmentsPerFloor}');
+    }
+    if (cfg.isVisible(BuildingField.clearHeight) && project.clearHeight != null) {
+      addRow(cfg.labelFor(BuildingField.clearHeight),
+          '${project.clearHeight} ${cfg.unitFor(BuildingField.clearHeight) ?? 'm'}');
+    }
+    if (cfg.isVisible(BuildingField.administrativeArea) &&
+        project.administrativeArea != null) {
+      addRow(cfg.labelFor(BuildingField.administrativeArea),
+          '${project.administrativeArea} m²');
+    }
+    if (cfg.isVisible(BuildingField.commercialUnits) && project.commercialUnits != null) {
+      addRow(cfg.labelFor(BuildingField.commercialUnits), '${project.commercialUnits}');
+    }
+    if (cfg.isVisible(BuildingField.workstations) && project.workstations != null) {
+      addRow(cfg.labelFor(BuildingField.workstations), '${project.workstations}');
+    }
+    if (cfg.isVisible(BuildingField.loadingArea) && project.loadingArea != null) {
+      addRow(cfg.labelFor(BuildingField.loadingArea), '${project.loadingArea} m²');
+    }
+    if (cfg.isVisible(BuildingField.parkingSpaces) && project.parkingSpaces != null) {
+      addRow(cfg.labelFor(BuildingField.parkingSpaces), '${project.parkingSpaces}');
+    }
+
+    return rows;
+  }
+
+  String _buildingTypeLabel(BuildingType type) {
+    switch (type) {
+      case BuildingType.house: return 'Casa';
+      case BuildingType.residentialBuilding: return 'Edificio Residencial';
+      case BuildingType.commercialBuilding: return 'Edificio Comercial';
+      case BuildingType.commercialSpace: return 'Local Comercial';
+      case BuildingType.office: return 'Oficina';
+      case BuildingType.warehouse: return 'Bodega / Industrial';
+      case BuildingType.custom: return 'Construcción Personalizada';
+    }
   }
 }

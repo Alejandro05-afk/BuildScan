@@ -36,38 +36,42 @@ class FerreteriaHomeScreen extends ConsumerWidget {
             return const Center(child: Text('No tienes solicitudes pendientes.'));
           }
 
-          return ListView.builder(
-            itemCount: solicitudes.length,
-            itemBuilder: (context, index) {
-              final sol = solicitudes[index];
-              final proforma = sol['proformas'];
-              final proyecto = proforma?['proyectos'];
-              final nombreProyecto = proyecto?['nombre'] ?? proforma?['nombre'] ?? 'Proforma sin nombre';
-              final estado = sol['estado'];
-
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                elevation: 3,
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.teal,
-                    child: Icon(Icons.request_quote, color: Colors.white),
-                  ),
-                  title: Text(nombreProyecto, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('Estado: ${estado.toString().toUpperCase()}\nFecha: ${sol['created_at'].toString().substring(0, 10)}'),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    // TODO: go to ResponderCotizacionScreen
-                    if (estado == 'pendiente') {
-                      context.push('/responder-cotizacion', extra: sol);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Esta solicitud ya fue $estado')));
-                    }
-                  },
-                ),
-              );
+          return RefreshIndicator(
+            onRefresh: () async {
+              return ref.refresh(solicitudesFerreteriaProvider.future);
             },
+            child: ListView.builder(
+              itemCount: solicitudes.length,
+              itemBuilder: (context, index) {
+                final sol = solicitudes[index];
+                final proforma = sol['proformas'];
+                final proyecto = proforma?['proyectos'];
+                final nombreProyecto = proyecto?['nombre'] ?? proforma?['nombre'] ?? 'Proforma sin nombre';
+                final estado = sol['estado'];
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  elevation: 3,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: const CircleAvatar(
+                      backgroundColor: Colors.teal,
+                      child: Icon(Icons.request_quote, color: Colors.white),
+                    ),
+                    title: Text(nombreProyecto, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text('Estado: ${estado.toString().toUpperCase()}\nFecha: ${sol['created_at'].toString().substring(0, 10)}'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () {
+                      if (estado == 'enviada' || estado == 'pendiente') {
+                        context.push('/responder-cotizacion', extra: sol);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Esta solicitud ya fue $estado')));
+                      }
+                    },
+                  ),
+                );
+              },
+            ),
           );
         },
       ),

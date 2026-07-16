@@ -23,6 +23,7 @@ class ConstructionImageScreen extends ConsumerWidget {
     final imageState = ref.watch(constructionImageControllerProvider);
 
     final dimensions = ProjectDimensions(
+      elementType: form.tipoConstruccion,
       largo: form.largo,
       ancho: form.ancho,
       alto: form.alto,
@@ -177,6 +178,7 @@ class ConstructionImageScreen extends ConsumerWidget {
                     prompt: ref.read(aiPromptServiceProvider).buildConstructionPrompt(
                       type: ref.read(projectFormProvider).tipoConstruccion,
                       dimensions: ProjectDimensions(
+                        elementType: ref.read(projectFormProvider).tipoConstruccion,
                         largo: ref.read(projectFormProvider).largo,
                         ancho: ref.read(projectFormProvider).ancho,
                         alto: ref.read(projectFormProvider).alto,
@@ -247,16 +249,18 @@ class ConstructionImageScreen extends ConsumerWidget {
     );
   }
 
-  String _typeLabel(ConstructionType type) {
+  String _typeLabel(ElementType type) {
     switch (type) {
-      case ConstructionType.paredLadrillo:
+      case ElementType.wall:
         return 'Pared de ladrillo';
-      case ConstructionType.losaHormigon:
+      case ElementType.concreteSlab:
         return 'Losa de hormigón';
-      case ConstructionType.pisoCeramico:
+      case ElementType.ceramicFloor:
         return 'Piso cerámico';
-      case ConstructionType.cuartoBasico:
+      case ElementType.room:
         return 'Cuarto básico';
+      case ElementType.roof:
+        return 'Techo / Cubierta';
     }
   }
 }

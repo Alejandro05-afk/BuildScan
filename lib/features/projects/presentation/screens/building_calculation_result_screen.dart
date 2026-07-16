@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/building_project_form_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/widgets/clay_submit_button.dart';
 import '../providers/projects_provider.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class BuildingCalculationResultScreen extends ConsumerWidget {
   const BuildingCalculationResultScreen({Key? key}) : super(key: key);
@@ -58,34 +59,7 @@ class BuildingCalculationResultScreen extends ConsumerWidget {
                 Expanded(
                   child: ClaySubmitButton(
                     text: 'Guardar Proyecto',
-                    onPressed: () async {
-                      try {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Guardando...')),
-                        );
-                        final user = ref.read(authStateProvider).value?.session?.user;
-                        if (user != null) {
-                           final projectToSave = state.form.copyWith(
-                             constructoraId: user.id,
-                           );
-                           final repo = ref.read(projectRepositoryProvider);
-                           await repo.createCompleteBuildingProject(projectToSave);
-                           
-                           if (context.mounted) {
-                             ScaffoldMessenger.of(context).showSnackBar(
-                               const SnackBar(content: Text('Proyecto Guardado Exitosamente'), backgroundColor: Colors.green),
-                             );
-                             Navigator.of(context).popUntil((route) => route.isFirst);
-                           }
-                        }
-                      } catch (e) {
-                         if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                               SnackBar(content: Text('Error al guardar: $e'), backgroundColor: Colors.red),
-                            );
-                         }
-                      }
-                    },
+                    onPressed: () => _guardarYNavegarAProforma(context, ref, state),
                   ),
                 ),
               ],
@@ -188,5 +162,34 @@ class BuildingCalculationResultScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _guardarYNavegarAProforma(BuildContext context, WidgetRef ref, dynamic state) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Guardando proyecto...')),
+      );
+      final user = ref.read(authStateProvider).value?.session?.user;
+      if (user == null) throw Exception("Usuario no autenticado");
+
+      // 1. Guardar Proyecto en DB
+      final projectToSave = state.form.copyWith(constructoraId: user.id);
+      final repo = ref.read(projectRepositoryProvider);
+      final savedProject = await repo.createCompleteBuildingProject(projectToSave);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Proyecto guardado correctamente'), backgroundColor: Colors.green),
+        );
+        // Navegar a la pantalla de previsualización de la proforma
+        context.push('/proforma_building', extra: savedProject);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 }

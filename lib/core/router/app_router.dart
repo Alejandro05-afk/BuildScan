@@ -21,7 +21,9 @@ import '../../features/projects/presentation/screens/project_detail_screen.dart'
 import '../../features/ai/presentation/screens/construction_image_screen.dart';
 import '../../features/projects/presentation/screens/building_project_form_screen.dart';
 import '../../features/projects/presentation/screens/building_calculation_result_screen.dart';
+import '../../features/projects/presentation/screens/building_proforma_preview_screen.dart';
 import '../../features/projects/domain/entities/project_entity.dart';
+import '../../features/projects/domain/entities/building_project.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -110,6 +112,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final project = state.extra as ProjectEntity?;
           return ProformaPreviewScreen(savedProject: project);
+        },
+      ),
+      GoRoute(
+        path: '/proforma_building',
+        builder: (context, state) {
+          final project = state.extra as BuildingProject?;
+          return BuildingProformaPreviewScreen(savedProject: project);
         },
       ),
     ],

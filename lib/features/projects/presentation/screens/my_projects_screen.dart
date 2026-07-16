@@ -22,52 +22,57 @@ class MyProjectsScreen extends ConsumerWidget {
             return _buildEmptyState(context);
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: projects.length,
-            itemBuilder: (context, index) {
-              final proj = projects[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () => context.push('/projects/detail/${proj.id}'),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                proj.nombre,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+          return RefreshIndicator(
+            onRefresh: () async {
+              return ref.refresh(myProjectsProvider.future);
+            },
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: projects.length,
+              itemBuilder: (context, index) {
+                final proj = projects[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () => context.push('/projects/detail/${proj.id}'),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  proj.nombre,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              _buildStatusBadge(proj.estado),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text('Área: ${proj.area.toStringAsFixed(2)} m²'),
-                          Text('Tipo: ${proj.tipoConstruccion.name}'),
-                          if (proj.createdAt != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              'Fecha: ${proj.createdAt!.toLocal().toString().split(' ')[0]}',
-                              style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                _buildStatusBadge(proj.estado),
+                              ],
                             ),
+                            const SizedBox(height: 8),
+                            Text('Área: ${proj.area.toStringAsFixed(2)} m²'),
+                            Text('Tipo: ${proj.tipoConstruccion.name}'),
+                            if (proj.createdAt != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                'Fecha: ${proj.createdAt!.toLocal().toString().split(' ')[0]}',
+                                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
       ),

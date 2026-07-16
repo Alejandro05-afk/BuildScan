@@ -23,7 +23,7 @@ class CotizacionRepository {
         await client.from('solicitudes_cotizacion').insert({
           'proforma_id': proformaId,
           'ferreteria_id': ferreteriaId,
-          'estado': 'pendiente',
+          'estado': 'enviada',
           'mensaje': mensaje,
         });
       }
