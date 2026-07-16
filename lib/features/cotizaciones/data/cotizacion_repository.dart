@@ -16,7 +16,7 @@ class CotizacionRepository {
           .select('id')
           .eq('proforma_id', proformaId)
           .eq('ferreteria_id', ferreteriaId)
-          .inFilter('estado', ['pendiente', 'cotizada', 'aceptada'])
+          .inFilter('estado', ['enviada', 'cotizada', 'aceptada', 'rechazada'])
           .limit(1);
 
       if (existentes.isEmpty) {

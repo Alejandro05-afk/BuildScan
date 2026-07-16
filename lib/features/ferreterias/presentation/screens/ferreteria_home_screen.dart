@@ -62,7 +62,7 @@ class FerreteriaHomeScreen extends ConsumerWidget {
                     subtitle: Text('Estado: ${estado.toString().toUpperCase()}\nFecha: ${sol['created_at'].toString().substring(0, 10)}'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
-                      if (estado == 'enviada' || estado == 'pendiente') {
+                      if (estado == 'enviada') {
                         context.push('/responder-cotizacion', extra: sol);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Esta solicitud ya fue $estado')));
