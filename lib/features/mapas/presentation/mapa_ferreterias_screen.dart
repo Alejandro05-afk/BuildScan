@@ -195,7 +195,8 @@ class _MapaFerreteriasScreenState extends ConsumerState<MapaFerreteriasScreen> {
                   );
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Solicitud enviada a ${ids.length} ferretería(s)')));
-                    context.go('/projects/my_projects');
+                    context.go('/constructor/home');
+                    context.push('/projects/my_projects');
                   }
                 } catch (e) {
                   if (context.mounted) {

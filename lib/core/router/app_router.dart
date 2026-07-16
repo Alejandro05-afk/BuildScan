@@ -23,6 +23,9 @@ import '../../features/ai/presentation/screens/building_image_screen.dart';
 import '../../features/projects/presentation/screens/building_project_form_screen.dart';
 import '../../features/projects/presentation/screens/building_calculation_result_screen.dart';
 import '../../features/projects/presentation/screens/building_proforma_preview_screen.dart';
+import '../../features/projects/presentation/screens/project_qr_screen.dart';
+import '../../features/projects/presentation/screens/project_scan_screen.dart';
+import '../../features/projects/presentation/screens/pdf_viewer_screen.dart';
 import '../../features/projects/domain/entities/project_entity.dart';
 import '../../features/projects/domain/entities/building_project.dart';
 
@@ -113,6 +116,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/projects/detail/:id',
         builder: (context, state) => ProjectDetailScreen(projectId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/projects/qr/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ProjectQrScreen(projectId: id);
+        },
+      ),
+      GoRoute(
+        path: '/projects/scan',
+        builder: (context, state) => const ProjectScanScreen(),
+      ),
+      GoRoute(
+        path: '/projects/pdf-viewer',
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>?;
+          if (args == null) {
+            return const Scaffold(body: Center(child: Text('Error: datos no válidos')));
+          }
+          return PdfViewerScreen(
+            pdfBytes: args['pdfBytes'] as dynamic,
+            title: args['title'] as String? ?? 'PDF',
+          );
+        },
       ),
       GoRoute(
         path: '/proforma',

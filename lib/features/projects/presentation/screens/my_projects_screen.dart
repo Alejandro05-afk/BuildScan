@@ -8,16 +8,32 @@ class MyProjectsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final projectsAsync = ref.watch(myProjectsProvider);
+    final projectsAsync = ref.watch(myProjectsRawProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mis Proyectos'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Regresar',
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/constructor/home');
+            }
+          },
+        ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'Escanear QR',
+            onPressed: () => context.push('/projects/scan'),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              ref.invalidate(myProjectsProvider);
+              ref.invalidate(myProjectsRawProvider);
             },
           )
         ],
@@ -32,7 +48,7 @@ class MyProjectsScreen extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () async {
-              return ref.refresh(myProjectsProvider.future);
+              ref.invalidate(myProjectsRawProvider);
             },
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -42,14 +58,14 @@ class MyProjectsScreen extends ConsumerWidget {
                   return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Dismissible(
-                    key: ValueKey(proj.id),
+                    key: ValueKey(proj['id']),
                     direction: DismissDirection.endToStart,
                     confirmDismiss: (direction) async {
                       return await showDialog<bool>(
                         context: context,
                         builder: (ctx) => AlertDialog(
                           title: const Text('Eliminar proyecto'),
-                          content: Text('¿Eliminar "${proj.nombre}"? Esta acción no se puede deshacer.'),
+                          content: Text('¿Eliminar "${proj['nombre']}"? Esta acción no se puede deshacer.'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx, false),
@@ -66,15 +82,15 @@ class MyProjectsScreen extends ConsumerWidget {
                     onDismissed: (direction) async {
                       try {
                         final repo = ref.read(projectRepositoryProvider);
-                        await repo.deleteProject(proj.id);
-                        ref.invalidate(myProjectsProvider);
+                        await repo.deleteProject(proj['id']);
+                        ref.invalidate(myProjectsRawProvider);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('"${proj.nombre}" eliminado')),
+                            SnackBar(content: Text('"${proj['nombre']}" eliminado')),
                           );
                         }
                       } catch (e) {
-                        ref.invalidate(myProjectsProvider);
+                        ref.invalidate(myProjectsRawProvider);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Error al eliminar: $e')),
@@ -91,7 +107,7 @@ class MyProjectsScreen extends ConsumerWidget {
                     child: Card(
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
-                      onTap: () => context.push('/projects/detail/${proj.id}'),
+                      onTap: () => context.push('/projects/detail/${proj['id']}'),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -100,23 +116,34 @@ class MyProjectsScreen extends ConsumerWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  proj.nombre,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Text(
+                                    proj['nombre'] ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                _buildStatusBadge(proj.estado),
+                                IconButton(
+                                  icon: const Icon(Icons.qr_code, size: 20),
+                                  tooltip: 'Ver QR',
+                                  onPressed: () => context.push('/projects/qr/${proj['id']}'),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildStatusBadge(proj['estado'] ?? 'activo'),
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Text('Área: ${proj.area.toStringAsFixed(2)} m²'),
-                            Text('Tipo: ${proj.tipoConstruccion.name}'),
-                            if (proj.createdAt != null) ...[
+                            Text('Área: ${((proj['area'] as num?) ?? (proj['area_m2'] as num?) ?? 0).toDouble().toStringAsFixed(2)} m²'),
+                            Text('Tipo: ${_typeLabel(proj)}'),
+                            if (proj['created_at'] != null) ...[
                               const SizedBox(height: 4),
                               Text(
-                                'Fecha: ${proj.createdAt!.toLocal().toString().split(' ')[0]}',
+                                'Fecha: ${proj['created_at'].toString().substring(0, 10)}',
                                 style: const TextStyle(color: Colors.grey, fontSize: 12),
                               ),
                             ],
@@ -177,6 +204,61 @@ class MyProjectsScreen extends ConsumerWidget {
     );
   }
 
+  String _typeLabel(Map<String, dynamic> proj) {
+    final scope = proj['project_scope'] as String?;
+    if (scope == 'completeBuilding') {
+      return _buildingTypeLabel(proj['building_type'] as String?);
+    }
+    final rawType = proj['tipo_construccion'] as String? ?? 'wall';
+    switch (rawType) {
+      case 'wall':
+      case 'paredLadrillo':
+      case 'pared_ladrillo':
+      case 'pared':
+        return 'Pared';
+      case 'ceramic_floor':
+      case 'pisoCeramico':
+      case 'piso_ceramico':
+      case 'piso':
+        return 'Piso cerámico';
+      case 'concrete_slab':
+      case 'losaHormigon':
+      case 'losa_hormigon':
+      case 'losa':
+        return 'Losa de hormigón';
+      case 'room':
+      case 'cuartoBasico':
+      case 'cuarto_basico':
+      case 'cuarto':
+        return 'Cuarto básico';
+      case 'roof':
+      case 'techo':
+        return 'Techo / Cubierta';
+      default:
+        return rawType;
+    }
+  }
+
+  String _buildingTypeLabel(String? buildingType) {
+    switch (buildingType) {
+      case 'house':
+        return 'Casa';
+      case 'residentialBuilding':
+        return 'Edificio Residencial';
+      case 'commercialBuilding':
+        return 'Edificio Comercial';
+      case 'commercialSpace':
+        return 'Local Comercial';
+      case 'office':
+        return 'Oficina';
+      case 'warehouse':
+        return 'Bodega / Almacén';
+      case 'custom':
+      default:
+        return 'Personalizado';
+    }
+  }
+
   Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
@@ -197,7 +279,7 @@ class MyProjectsScreen extends ConsumerWidget {
     Color color;
     Color bgColor;
     String text;
-    
+
     switch (status) {
       case 'activo':
         color = Colors.green.shade700;
@@ -219,13 +301,13 @@ class MyProjectsScreen extends ConsumerWidget {
         bgColor = Colors.grey.shade100;
         text = status.toUpperCase();
     }
-    
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: bgColor,
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         text,

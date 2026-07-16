@@ -47,3 +47,7 @@ app.*.map.json
 
 # Variables de entorno
 .env
+
+# Supabase migrations y carpeta de imagenes locales
+supabase/migrations/
+imagenes/

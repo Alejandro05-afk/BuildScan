@@ -13,9 +13,23 @@ final projectRepositoryProvider = Provider<ProjectRepository>((ref) {
 final myProjectsProvider = FutureProvider<List<ProjectEntity>>((ref) async {
   final user = ref.watch(authStateProvider).value?.session?.user;
   if (user == null) return [];
-  
+
   final repo = ref.watch(projectRepositoryProvider);
   return repo.getMyProjects(user.id);
+});
+
+/// Returns raw DB rows so we can detect project_scope and building_type.
+final myProjectsRawProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final user = ref.watch(authStateProvider).value?.session?.user;
+  if (user == null) return [];
+
+  final client = ref.watch(supabaseProvider);
+  return await client
+      .from('proyectos')
+      .select()
+      .eq('constructora_id', user.id)
+      .order('created_at', ascending: false);
 });
 
 class SaveProjectNotifier extends AsyncNotifier<ProjectEntity?> {

@@ -9,6 +9,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/building_project_form_provider.dart';
 import '../../domain/entities/building_project.dart';
 import '../../../../core/services/storage_service.dart';
+import 'package:printing/printing.dart';
 
 class BuildingProformaPreviewScreen extends ConsumerStatefulWidget {
   final BuildingProject? savedProject;
@@ -131,18 +132,63 @@ class _BuildingProformaPreviewScreenState extends ConsumerState<BuildingProforma
                         ])),
                   ],
                 ),
-                const SizedBox(height: 32),
-                ElevatedButton.icon(
-                  onPressed: () => _generarYSolicitarCotizacion(context, ref, project, calc),
-                  icon: const Icon(Icons.send_and_archive),
-                  label: const Text('Solicitar Cotización'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
+                 const SizedBox(height: 32),
+                 Row(
+                   children: [
+                     Expanded(
+                       flex: 3,
+                       child: ElevatedButton.icon(
+                         onPressed: () => _generarYSolicitarCotizacion(context, ref, project, calc),
+                         icon: const Icon(Icons.send_and_archive),
+                         label: const Text('Solicitar Cotización'),
+                         style: ElevatedButton.styleFrom(
+                           padding: const EdgeInsets.symmetric(vertical: 16),
+                           backgroundColor: Colors.teal,
+                           foregroundColor: Colors.white,
+                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                         ),
+                       ),
+                     ),
+                     const SizedBox(width: 12),
+                     Expanded(
+                       flex: 2,
+                       child: ElevatedButton.icon(
+                         onPressed: () async {
+                           setState(() => _isLoading = true);
+                           try {
+                             final user = ref.read(authStateProvider).value?.session?.user;
+                             if (user == null) throw Exception("Usuario no autenticado");
+                             final pdfService = ProformaPdfService();
+                             final pdfBytes = await pdfService.generateCompleteBuildingPdf(
+                               proformaId: 'preview',
+                               project: project,
+                               materials: calc.materials,
+                               constructoraEmail: user.email,
+                             );
+                             await Printing.sharePdf(
+                               bytes: pdfBytes,
+                               filename: 'Proforma_Edificacion_${project.name}.pdf',
+                             );
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al compartir: $e')));
+                              }
+                            } finally {
+                              if (mounted) setState(() => _isLoading = false);
+                            }
+                         },
+                         icon: const Icon(Icons.share_rounded),
+                         label: const Text('Compartir'),
+                         style: ElevatedButton.styleFrom(
+                           padding: const EdgeInsets.symmetric(vertical: 16),
+                           backgroundColor: Colors.orange,
+                           foregroundColor: Colors.white,
+                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                         ),
+                       ),
+                     ),
+                   ],
+                 ),
               ],
             ),
           ),
