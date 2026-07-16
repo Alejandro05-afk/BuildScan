@@ -232,7 +232,7 @@ class BuildingProjectFormScreen extends ConsumerWidget {
   }
 
   Widget _buildSpacesStep(state, BuildingProjectFormNotifier notifier) {
-    final cfg = configForType(state.form.buildingType.name);
+    final cfg = configForType(state.form.buildingType.toString().split('.').last);
     final form = state.form as BuildingProject;
 
     return Column(
@@ -466,7 +466,7 @@ class BuildingProjectFormScreen extends ConsumerWidget {
 
   Widget _buildSummaryStep(state) {
     final form = state.form as BuildingProject;
-    final cfg = configForType(form.buildingType.name);
+    final cfg = configForType(form.buildingType.toString().split('.').last);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
