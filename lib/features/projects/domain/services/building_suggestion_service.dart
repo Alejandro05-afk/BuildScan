@@ -9,10 +9,10 @@ class BuildingSuggestionService {
   }) {
     final suggestions = <BuildingSuggestionResult>[];
 
-    if (area >= 40 && area <= 70) {
+    if (area <= 90) {
       suggestions.add(BuildingSuggestionResult(
         title: 'Vivienda Compacta',
-        description: 'Casa pequeña de una planta, ideal para 1 a 2 personas.',
+        description: 'Casa pequeña de una planta, ideal para 1 a 3 personas.',
         recommendedType: BuildingType.house,
         suggestedSpaces: ['1 a 2 dormitorios', '1 baño', 'Sala-comedor', 'Cocina'],
         estimatedBuiltArea: area,
@@ -20,16 +20,16 @@ class BuildingSuggestionService {
         estimatedWallArea: area * 2.5,
         estimatedRoofArea: area,
         assumptions: ['Distribución abierta', 'No requiere cimentación profunda'],
-        warnings: ['Área mínima, difícil ampliación'],
+        warnings: ['Área mínima, revisar espacios'],
       ));
     }
 
-    if (area > 70 && area <= 120) {
+    if (area >= 60 && area <= 150) {
       suggestions.add(BuildingSuggestionResult(
         title: 'Casa Familiar Estándar',
-        description: 'Vivienda cómoda para familia pequeña.',
+        description: 'Vivienda cómoda para familia pequeña o mediana.',
         recommendedType: BuildingType.house,
-        suggestedSpaces: ['2 a 3 dormitorios', '2 baños', 'Sala, comedor, cocina', 'Parqueadero opcional'],
+        suggestedSpaces: ['2 a 3 dormitorios', '2 baños', 'Sala, comedor, cocina', 'Parqueadero'],
         estimatedBuiltArea: area,
         estimatedCirculationArea: area * 0.12,
         estimatedWallArea: area * 2.6,
@@ -39,7 +39,7 @@ class BuildingSuggestionService {
       ));
     }
 
-    if (area > 120 && area <= 220) {
+    if (area >= 120 && area <= 300) {
       suggestions.add(BuildingSuggestionResult(
         title: 'Casa Amplia',
         description: 'Vivienda espaciosa con áreas sociales.',
@@ -54,10 +54,10 @@ class BuildingSuggestionService {
       ));
     }
 
-    if (area > 220) {
+    if (area >= 150) {
       suggestions.add(BuildingSuggestionResult(
-        title: 'Edificación Residencial / Comercial',
-        description: 'Edificio de departamentos o mixto comercial.',
+        title: 'Edificación Comercial o Mixta',
+        description: 'Edificio para departamentos o locales comerciales.',
         recommendedType: BuildingType.residentialBuilding,
         suggestedSpaces: ['Múltiples unidades', 'Áreas comunes', 'Parqueos subterráneos'],
         estimatedBuiltArea: area,
@@ -69,21 +69,19 @@ class BuildingSuggestionService {
       ));
     }
 
-    // Default if no specific range matches perfectly
-    if (suggestions.isEmpty) {
-      suggestions.add(BuildingSuggestionResult(
-        title: 'Proyecto Personalizado',
-        description: 'Edificación a medida basada en el área.',
-        recommendedType: BuildingType.custom,
-        suggestedSpaces: ['A definir por el usuario'],
-        estimatedBuiltArea: area,
-        estimatedCirculationArea: area * 0.15,
-        estimatedWallArea: area * 2.5,
-        estimatedRoofArea: area / (maxFloors ?? 1),
-        assumptions: ['Cálculo basado en promedios generales'],
-        warnings: ['Revisar con un profesional el diseño propuesto'],
-      ));
-    }
+    // Siempre añadir la opción personalizada al final
+    suggestions.add(BuildingSuggestionResult(
+      title: 'Proyecto Personalizado',
+      description: 'Edificación a medida basada en el área.',
+      recommendedType: BuildingType.custom,
+      suggestedSpaces: ['A definir por el usuario'],
+      estimatedBuiltArea: area,
+      estimatedCirculationArea: area * 0.15,
+      estimatedWallArea: area * 2.5,
+      estimatedRoofArea: area / (maxFloors ?? 1),
+      assumptions: ['Cálculo basado en promedios generales'],
+      warnings: ['Revisar con un profesional el diseño propuesto'],
+    ));
 
     return suggestions;
   }

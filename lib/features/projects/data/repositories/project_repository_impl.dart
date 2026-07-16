@@ -1,29 +1,38 @@
+// lib/features/projects/data/repositories/project_repository_impl.dart
+//
+// Supabase repository. All data sanitization happens here or in BuildingProjectMapper
+// BEFORE sending to the database. Never sends incompatible fields as stale values.
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/project_entity.dart';
 import '../../domain/entities/building_project.dart';
 import '../../domain/repositories/project_repository.dart';
 import '../models/project_model.dart';
+import '../models/building_project_mapper.dart';
 
 class ProjectRepositoryImpl implements ProjectRepository {
   final SupabaseClient _client;
 
   ProjectRepositoryImpl(this._client);
 
+  // ── Simple element projects ──────────────────────────────────────────────
+
   @override
   Future<ProjectEntity> createProject(ProjectEntity project) async {
     final map = {
       'constructora_id': project.constructoraId,
       'nombre': project.nombre,
-      'tipo_construccion': project.tipoConstruccion.name,
+      'tipo_construccion': project.tipoConstruccion.dbValue,
       'largo': project.largo,
       'ancho': project.ancho,
       'alto': project.alto,
       'area': project.area,
-      'area_m2': project.area, // Compatibilidad con schema anterior/manual
+      'area_m2': project.area,
       'porcentaje_desperdicio': project.porcentajeDesperdicio,
       'sugerencia': project.sugerencia,
       'ai_image_path': project.aiImagePath,
       'ai_image_source': project.aiImageSource,
+      'detalles_tecnicos': project.detallesTecnicos ?? {},
     };
 
     final response = await _client.from('proyectos').insert(map).select().single();
@@ -37,7 +46,7 @@ class ProjectRepositoryImpl implements ProjectRepository {
         .select()
         .eq('constructora_id', constructoraId)
         .order('created_at', ascending: false);
-    
+
     return response.map((e) => ProjectModel.fromMap(e)).toList();
   }
 
@@ -48,27 +57,29 @@ class ProjectRepositoryImpl implements ProjectRepository {
         .select()
         .eq('id', projectId)
         .maybeSingle();
-    
+
     if (response == null) return null;
     return ProjectModel.fromMap(response);
   }
 
   @override
   Future<ProjectEntity> updateProject(ProjectEntity project) async {
+    // For updates: explicitly send null for incompatible fields.
     final map = {
-      if (project.id.isNotEmpty) 'id': project.id,
       'constructora_id': project.constructoraId,
       'nombre': project.nombre,
-      'tipo_construccion': project.tipoConstruccion.name,
+      'tipo_construccion': project.tipoConstruccion.dbValue,
       'largo': project.largo,
       'ancho': project.ancho,
       'alto': project.alto,
       'area': project.area,
-      'area_m2': project.area, // Compatibilidad con schema anterior/manual
+      'area_m2': project.area,
       'porcentaje_desperdicio': project.porcentajeDesperdicio,
       'sugerencia': project.sugerencia,
       'ai_image_path': project.aiImagePath,
       'ai_image_source': project.aiImageSource,
+      // Fully replace technical details to remove stale keys:
+      'detalles_tecnicos': project.detallesTecnicos ?? {},
     };
 
     final response = await _client
@@ -77,7 +88,7 @@ class ProjectRepositoryImpl implements ProjectRepository {
         .eq('id', project.id)
         .select()
         .single();
-    
+
     return ProjectModel.fromMap(response);
   }
 
@@ -93,26 +104,28 @@ class ProjectRepositoryImpl implements ProjectRepository {
     }).eq('id', projectId);
   }
 
+  // ── Complete building projects ────────────────────────────────────────────
+
   @override
   Future<BuildingProject> createCompleteBuildingProject(BuildingProject project) async {
-    final map = project.toMap();
+    // Mapper produces policy-sanitized data with explicit nulls.
+    final map = BuildingProjectMapper.toInsertMap(project);
     final response = await _client.from('proyectos').insert(map).select().single();
-    return BuildingProject.fromMap(response);
+    return BuildingProjectMapper.fromMap(response);
   }
 
   @override
   Future<BuildingProject> updateCompleteBuildingProject(BuildingProject project) async {
-    final map = project.toMap();
-    map.remove('id'); // Avoid updating ID
-    
+    // toUpdateMap explicitly sends null for incompatible fields.
+    final map = BuildingProjectMapper.toUpdateMap(project);
     final response = await _client
         .from('proyectos')
         .update(map)
         .eq('id', project.id as Object)
         .select()
         .single();
-    
-    return BuildingProject.fromMap(response);
+
+    return BuildingProjectMapper.fromMap(response);
   }
 
   @override
@@ -122,7 +135,7 @@ class ProjectRepositoryImpl implements ProjectRepository {
         .select()
         .eq('project_scope', scope)
         .order('created_at', ascending: false);
-    
-    return response.map((e) => BuildingProject.fromMap(e)).toList();
+
+    return response.map((e) => BuildingProjectMapper.fromMap(e)).toList();
   }
 }

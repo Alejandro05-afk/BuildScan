@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/widgets/clay_container_alias.dart';
 import '../../domain/entities/building_project.dart';
 import '../../../../core/widgets/clay_input_field.dart';
 import '../../../../core/widgets/clay_submit_button.dart';
@@ -215,31 +214,144 @@ class BuildingProjectFormScreen extends ConsumerWidget {
   }
 
   Widget _buildSpacesStep(state, BuildingProjectFormNotifier notifier) {
+    final cfg = configForType(state.form.buildingType.policyKey);
+    final form = state.form as BuildingProject;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-         const Text(
-          'Espacios',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
+        const Text('Espacios', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         const SizedBox(height: 24),
-        ClayInputField(
-          labelText: 'Dormitorios',
-          initialValue: state.form.bedrooms.toString(),
-          keyboardType: TextInputType.number,
-          onChanged: (val) {
-            notifier.updateForm(state.form.copyWith(bedrooms: int.tryParse(val) ?? 0));
-          },
-        ),
-        const SizedBox(height: 20),
-        ClayInputField(
-          labelText: 'Baños',
-          initialValue: state.form.bathrooms.toString(),
-          keyboardType: TextInputType.number,
-          onChanged: (val) {
-            notifier.updateForm(state.form.copyWith(bathrooms: int.tryParse(val) ?? 0));
-          },
-        ),
+
+        // Dormitorios – only residential types
+        if (cfg.isVisible(BuildingField.bedrooms)) ...[
+          ClayInputField(
+            labelText: cfg.labelFor(BuildingField.bedrooms),
+            initialValue: form.bedrooms?.toString() ?? '',
+            keyboardType: TextInputType.number,
+            onChanged: (val) {
+              notifier.updateForm(form.copyWith(bedrooms: int.tryParse(val)));
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // Departamentos por planta – residential buildings
+        if (cfg.isVisible(BuildingField.apartmentsPerFloor)) ...[
+          ClayInputField(
+            labelText: cfg.labelFor(BuildingField.apartmentsPerFloor),
+            initialValue: form.apartmentsPerFloor?.toString() ?? '',
+            keyboardType: TextInputType.number,
+            onChanged: (val) {
+              notifier.updateForm(form.copyWith(apartmentsPerFloor: int.tryParse(val)));
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // Baños
+        if (cfg.isVisible(BuildingField.bathrooms)) ...[
+          ClayInputField(
+            labelText: cfg.labelFor(BuildingField.bathrooms),
+            initialValue: form.bathrooms?.toString() ?? '',
+            keyboardType: TextInputType.number,
+            onChanged: (val) {
+              notifier.updateForm(form.copyWith(bathrooms: int.tryParse(val)));
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // Cocinas – houses
+        if (cfg.isVisible(BuildingField.kitchens)) ...[
+          ClayInputField(
+            labelText: cfg.labelFor(BuildingField.kitchens),
+            initialValue: form.kitchens?.toString() ?? '',
+            keyboardType: TextInputType.number,
+            onChanged: (val) {
+              notifier.updateForm(form.copyWith(kitchens: int.tryParse(val)));
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // Estacionamientos
+        if (cfg.isVisible(BuildingField.parkingSpaces)) ...[
+          ClayInputField(
+            labelText: cfg.labelFor(BuildingField.parkingSpaces),
+            initialValue: form.parkingSpaces?.toString() ?? '',
+            keyboardType: TextInputType.number,
+            onChanged: (val) {
+              notifier.updateForm(form.copyWith(parkingSpaces: int.tryParse(val)));
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // Altura libre (bodegas, locales, oficinas)
+        if (cfg.isVisible(BuildingField.clearHeight)) ...[
+          ClayInputField(
+            labelText: '${cfg.labelFor(BuildingField.clearHeight)} (${cfg.unitFor(BuildingField.clearHeight) ?? 'm'})',
+            initialValue: form.clearHeight?.toString() ?? '',
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (val) {
+              notifier.updateForm(form.copyWith(clearHeight: double.tryParse(val)));
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // Área administrativa (bodegas)
+        if (cfg.isVisible(BuildingField.administrativeArea)) ...[
+          ClayInputField(
+            labelText: '${cfg.labelFor(BuildingField.administrativeArea)} (m²)',
+            initialValue: form.administrativeArea?.toString() ?? '',
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (val) {
+              notifier.updateForm(form.copyWith(administrativeArea: double.tryParse(val)));
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // Locales por planta (edificio comercial)
+        if (cfg.isVisible(BuildingField.commercialUnits)) ...[
+          ClayInputField(
+            labelText: cfg.labelFor(BuildingField.commercialUnits),
+            initialValue: form.commercialUnits?.toString() ?? '',
+            keyboardType: TextInputType.number,
+            onChanged: (val) {
+              notifier.updateForm(form.copyWith(commercialUnits: int.tryParse(val)));
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // Puestos de trabajo (oficinas)
+        if (cfg.isVisible(BuildingField.workstations)) ...[
+          ClayInputField(
+            labelText: cfg.labelFor(BuildingField.workstations),
+            initialValue: form.workstations?.toString() ?? '',
+            keyboardType: TextInputType.number,
+            onChanged: (val) {
+              notifier.updateForm(form.copyWith(workstations: int.tryParse(val)));
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // Área de carga y descarga (bodegas, comercial)
+        if (cfg.isVisible(BuildingField.loadingArea)) ...[
+          ClayInputField(
+            labelText: '${cfg.labelFor(BuildingField.loadingArea)} (m²)',
+            initialValue: form.loadingArea?.toString() ?? '',
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (val) {
+              notifier.updateForm(form.copyWith(loadingArea: double.tryParse(val)));
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
       ],
     );
   }
@@ -335,7 +447,9 @@ class BuildingProjectFormScreen extends ConsumerWidget {
   }
 
   Widget _buildSummaryStep(state) {
-    final form = state.form;
+    final form = state.form as BuildingProject;
+    final cfg = configForType(form.buildingType.policyKey);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -352,13 +466,23 @@ class BuildingProjectFormScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildSummaryRow('Nombre:', form.name),
-                _buildSummaryRow('Tipo Sugerido:', form.buildingType.toString().split('.').last.toUpperCase()),
-                _buildSummaryRow('Área Total:', '${form.totalArea} m²'),
+                _buildSummaryRow('Tipo Sugerido:', _translateType(form.buildingType)),
+                _buildSummaryRow('Área Total:', '${form.totalArea.toStringAsFixed(0)} m²'),
                 _buildSummaryRow('Plantas:', '${form.floors}'),
                 _buildSummaryRow('Sistema:', _translateSystem(form.constructionSystem)),
                 _buildSummaryRow('Acabados:', _translateFinish(form.finishLevel)),
-                _buildSummaryRow('Dormitorios:', '${form.bedrooms}'),
-                _buildSummaryRow('Baños:', '${form.bathrooms}'),
+                if (cfg.isVisible(BuildingField.bedrooms) && form.bedrooms != null)
+                  _buildSummaryRow('Dormitorios:', '${form.bedrooms}'),
+                if (cfg.isVisible(BuildingField.bathrooms) && form.bathrooms != null)
+                  _buildSummaryRow('Baños:', '${form.bathrooms}'),
+                if (cfg.isVisible(BuildingField.kitchens) && form.kitchens != null)
+                  _buildSummaryRow('Cocinas:', '${form.kitchens}'),
+                if (cfg.isVisible(BuildingField.apartmentsPerFloor) && form.apartmentsPerFloor != null)
+                  _buildSummaryRow('Dptos / Planta:', '${form.apartmentsPerFloor}'),
+                if (cfg.isVisible(BuildingField.clearHeight) && form.clearHeight != null)
+                  _buildSummaryRow('Altura libre:', '${form.clearHeight} m'),
+                if (cfg.isVisible(BuildingField.parkingSpaces) && form.parkingSpaces != null)
+                  _buildSummaryRow('Estacionamientos:', '${form.parkingSpaces}'),
               ],
             ),
           ),
@@ -373,6 +497,18 @@ class BuildingProjectFormScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  String _translateType(BuildingType type) {
+    switch (type) {
+      case BuildingType.house: return 'Casa';
+      case BuildingType.residentialBuilding: return 'Edificio Residencial';
+      case BuildingType.commercialBuilding: return 'Edificio Comercial';
+      case BuildingType.commercialSpace: return 'Local Comercial';
+      case BuildingType.office: return 'Oficina';
+      case BuildingType.warehouse: return 'Bodega / Industrial';
+      case BuildingType.custom: return 'Construcción Personalizada';
+    }
   }
 
   Widget _buildSummaryRow(String label, String value) {

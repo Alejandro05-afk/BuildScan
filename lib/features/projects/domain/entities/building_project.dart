@@ -1,9 +1,17 @@
-import 'dart:convert';
+// lib/features/projects/domain/entities/building_project.dart
+//
+// Domain entity for complete building projects.
+// Uses a sentinel pattern to allow null values in copyWith.
+// Does NOT contain Supabase logic – see BuildingProjectModel.
 
-enum ProjectScope {
-  constructionElement,
-  completeBuilding,
-}
+import '../policies/building_type_policy.dart';
+
+export '../policies/building_type_policy.dart'
+    show BuildingField, BuildingFieldRule, BuildingTypeConfig, buildingTypePolicy, configForType;
+
+// ─── Enums ────────────────────────────────────────────────────────────────
+
+enum ProjectScope { constructionElement, completeBuilding }
 
 enum BuildingType {
   house,
@@ -15,18 +23,24 @@ enum BuildingType {
   custom,
 }
 
-enum ConstructionSystem {
-  reinforcedConcrete,
-  masonry,
-  steelStructure,
-  mixed,
+extension BuildingTypeKey on BuildingType {
+  /// Stable key used to look up in [buildingTypePolicy] and in Supabase.
+  String get policyKey => name; // same as enum name for now
 }
 
-enum FinishLevel {
-  basic,
-  standard,
-  premium,
+enum ConstructionSystem { reinforcedConcrete, masonry, steelStructure, mixed }
+
+enum FinishLevel { basic, standard, premium }
+
+// ─── Sentinel for nullable copyWith ───────────────────────────────────────
+
+class _Unset {
+  const _Unset();
 }
+
+const _unset = _Unset();
+
+// ─── Entity ───────────────────────────────────────────────────────────────
 
 class BuildingProject {
   final String? id;
@@ -36,11 +50,32 @@ class BuildingProject {
   final BuildingType buildingType;
   final double totalArea;
   final int floors;
+  /// Semantic height of an interior room or floor-to-ceiling.
+  /// NOT to be confused with clearHeight (warehouse).
   final double floorHeight;
-  final int bedrooms;
-  final int bathrooms;
-  final int kitchens;
-  final int parkingSpaces;
+
+  // Residential
+  final int? bedrooms;
+  final int? bathrooms;
+  final int? kitchens;
+
+  // Residential building
+  final int? apartmentsPerFloor;
+
+  // Non-residential
+  /// Warehouse / commercial: free height in meters.
+  final double? clearHeight;
+  /// Optional administrative area (m²) for warehouses.
+  final double? administrativeArea;
+  /// Commercial building: units per floor.
+  final int? commercialUnits;
+  /// Office: estimated workstations.
+  final int? workstations;
+  /// Warehouse: loading dock area (m²).
+  final double? loadingArea;
+
+  // Common optional
+  final int? parkingSpaces;
   final bool hasRoofSlab;
   final bool hasExteriorWalls;
   final ConstructionSystem constructionSystem;
@@ -48,19 +83,25 @@ class BuildingProject {
   final double wastePercentage;
   final String? customDescription;
 
-  BuildingProject({
+  const BuildingProject({
     this.id,
     required this.constructoraId,
     required this.name,
     this.scope = ProjectScope.completeBuilding,
     required this.buildingType,
     required this.totalArea,
-    required this.floors,
-    required this.floorHeight,
-    this.bedrooms = 0,
-    this.bathrooms = 0,
-    this.kitchens = 0,
-    this.parkingSpaces = 0,
+    this.floors = 1,
+    this.floorHeight = 2.6,
+    this.bedrooms,
+    this.bathrooms,
+    this.kitchens,
+    this.apartmentsPerFloor,
+    this.clearHeight,
+    this.administrativeArea,
+    this.commercialUnits,
+    this.workstations,
+    this.loadingArea,
+    this.parkingSpaces,
     this.hasRoofSlab = true,
     this.hasExteriorWalls = true,
     required this.constructionSystem,
@@ -68,6 +109,12 @@ class BuildingProject {
     this.wastePercentage = 0.0,
     this.customDescription,
   });
+
+  // ── Policy helper ────────────────────────────────────────────────────────
+
+  BuildingTypeConfig get policy => configForType(buildingType.policyKey);
+
+  // ── copyWith with sentinel pattern ───────────────────────────────────────
 
   BuildingProject copyWith({
     String? id,
@@ -78,10 +125,16 @@ class BuildingProject {
     double? totalArea,
     int? floors,
     double? floorHeight,
-    int? bedrooms,
-    int? bathrooms,
-    int? kitchens,
-    int? parkingSpaces,
+    Object? bedrooms = _unset,
+    Object? bathrooms = _unset,
+    Object? kitchens = _unset,
+    Object? apartmentsPerFloor = _unset,
+    Object? clearHeight = _unset,
+    Object? administrativeArea = _unset,
+    Object? commercialUnits = _unset,
+    Object? workstations = _unset,
+    Object? loadingArea = _unset,
+    Object? parkingSpaces = _unset,
     bool? hasRoofSlab,
     bool? hasExteriorWalls,
     ConstructionSystem? constructionSystem,
@@ -98,10 +151,24 @@ class BuildingProject {
       totalArea: totalArea ?? this.totalArea,
       floors: floors ?? this.floors,
       floorHeight: floorHeight ?? this.floorHeight,
-      bedrooms: bedrooms ?? this.bedrooms,
-      bathrooms: bathrooms ?? this.bathrooms,
-      kitchens: kitchens ?? this.kitchens,
-      parkingSpaces: parkingSpaces ?? this.parkingSpaces,
+      bedrooms: identical(bedrooms, _unset) ? this.bedrooms : bedrooms as int?,
+      bathrooms: identical(bathrooms, _unset) ? this.bathrooms : bathrooms as int?,
+      kitchens: identical(kitchens, _unset) ? this.kitchens : kitchens as int?,
+      apartmentsPerFloor: identical(apartmentsPerFloor, _unset)
+          ? this.apartmentsPerFloor
+          : apartmentsPerFloor as int?,
+      clearHeight: identical(clearHeight, _unset) ? this.clearHeight : clearHeight as double?,
+      administrativeArea: identical(administrativeArea, _unset)
+          ? this.administrativeArea
+          : administrativeArea as double?,
+      commercialUnits: identical(commercialUnits, _unset)
+          ? this.commercialUnits
+          : commercialUnits as int?,
+      workstations: identical(workstations, _unset) ? this.workstations : workstations as int?,
+      loadingArea: identical(loadingArea, _unset) ? this.loadingArea : loadingArea as double?,
+      parkingSpaces: identical(parkingSpaces, _unset)
+          ? this.parkingSpaces
+          : parkingSpaces as int?,
       hasRoofSlab: hasRoofSlab ?? this.hasRoofSlab,
       hasExteriorWalls: hasExteriorWalls ?? this.hasExteriorWalls,
       constructionSystem: constructionSystem ?? this.constructionSystem,
@@ -111,94 +178,74 @@ class BuildingProject {
     );
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      if (id != null && id!.isNotEmpty) 'id': id,
-      'constructora_id': constructoraId,
-      'nombre': name,
-      'tipo_construccion': 'edificacion_completa', // Needed to satisfy DB NOT NULL constraint
-      'project_scope': scope.toString().split('.').last,
-      'building_type': buildingType.toString().split('.').last,
-      'total_area': totalArea,
-      'floors': floors,
-      'floor_height': floorHeight,
-      'bedrooms': bedrooms,
-      'bathrooms': bathrooms,
-      'kitchens': kitchens,
-      'parking_spaces': parkingSpaces,
-      'has_roof_slab': hasRoofSlab,
-      'has_exterior_walls': hasExteriorWalls,
-      'construction_system': constructionSystem.toString().split('.').last,
-      'finish_level': finishLevel.toString().split('.').last,
-      'waste_percentage': wastePercentage,
-      'custom_description': customDescription,
-    };
-  }
-
-  factory BuildingProject.fromMap(Map<String, dynamic> map) {
-    return BuildingProject(
-      id: map['id'] as String?,
-      constructoraId: map['constructora_id'] as String? ?? '',
-      name: map['nombre'] as String? ?? '',
-      scope: ProjectScope.values.firstWhere(
-        (e) => e.toString().split('.').last == map['project_scope'],
-        orElse: () => ProjectScope.completeBuilding,
-      ),
-      buildingType: BuildingType.values.firstWhere(
-        (e) => e.toString().split('.').last == map['building_type'],
-        orElse: () => BuildingType.custom,
-      ),
-      totalArea: (map['total_area'] as num?)?.toDouble() ?? 0.0,
-      floors: (map['floors'] as num?)?.toInt() ?? 1,
-      floorHeight: (map['floor_height'] as num?)?.toDouble() ?? 2.4,
-      bedrooms: (map['bedrooms'] as num?)?.toInt() ?? 0,
-      bathrooms: (map['bathrooms'] as num?)?.toInt() ?? 0,
-      kitchens: (map['kitchens'] as num?)?.toInt() ?? 0,
-      parkingSpaces: (map['parking_spaces'] as num?)?.toInt() ?? 0,
-      hasRoofSlab: map['has_roof_slab'] as bool? ?? true,
-      hasExteriorWalls: map['has_exterior_walls'] as bool? ?? true,
-      constructionSystem: ConstructionSystem.values.firstWhere(
-        (e) => e.toString().split('.').last == map['construction_system'],
-        orElse: () => ConstructionSystem.reinforcedConcrete,
-      ),
-      finishLevel: FinishLevel.values.firstWhere(
-        (e) => e.toString().split('.').last == map['finish_level'],
-        orElse: () => FinishLevel.standard,
-      ),
-      wastePercentage: (map['waste_percentage'] as num?)?.toDouble() ?? 0.0,
-      customDescription: map['custom_description'] as String?,
+  /// Returns a new project with all fields incompatible with [newType] set to null.
+  BuildingProject withType(BuildingType newType) {
+    final cfg = configForType(newType.policyKey);
+    return copyWith(
+      buildingType: newType,
+      bedrooms: cfg.isVisible(BuildingField.bedrooms) ? bedrooms : null,
+      bathrooms: cfg.isVisible(BuildingField.bathrooms) ? bathrooms : null,
+      kitchens: cfg.isVisible(BuildingField.kitchens) ? kitchens : null,
+      apartmentsPerFloor:
+          cfg.isVisible(BuildingField.apartmentsPerFloor) ? apartmentsPerFloor : null,
+      clearHeight: cfg.isVisible(BuildingField.clearHeight) ? clearHeight : null,
+      administrativeArea:
+          cfg.isVisible(BuildingField.administrativeArea) ? administrativeArea : null,
+      commercialUnits: cfg.isVisible(BuildingField.commercialUnits) ? commercialUnits : null,
+      workstations: cfg.isVisible(BuildingField.workstations) ? workstations : null,
+      loadingArea: cfg.isVisible(BuildingField.loadingArea) ? loadingArea : null,
+      parkingSpaces: cfg.isVisible(BuildingField.parkingSpaces) ? parkingSpaces : null,
     );
   }
 
-  String toJson() => json.encode(toMap());
-
-  factory BuildingProject.fromJson(String source) =>
-      BuildingProject.fromMap(json.decode(source) as Map<String, dynamic>);
+  // ── Validation ────────────────────────────────────────────────────────────
 
   List<String> validate() {
     final errors = <String>[];
-    if (name.trim().isEmpty) {
-      errors.add('El nombre del proyecto es obligatorio.');
-    }
-    if (totalArea <= 0) {
-      errors.add('El área debe ser mayor a 0 m².');
-    }
-    // Max area configurable, but for now we put a reasonable limit like 10,000
-    if (totalArea > 10000) {
-      errors.add('El área excede el máximo permitido para estimaciones referenciales.');
-    }
-    if (floors < 1 || floors > 20) {
-      errors.add('El número de plantas debe estar entre 1 y 20.');
-    }
-    if (floorHeight < 2.2 || floorHeight > 6.0) {
-      errors.add('La altura por planta debe estar entre 2.2m y 6.0m.');
-    }
+    if (name.trim().isEmpty) errors.add('El nombre del proyecto es obligatorio.');
+    if (totalArea <= 0) errors.add('El área debe ser mayor a 0 m².');
+    if (totalArea > 10000) errors.add('El área excede el máximo de 10 000 m².');
     if (wastePercentage < 0 || wastePercentage > 30) {
-      errors.add('El porcentaje de desperdicio debe estar entre 0% y 30%.');
+      errors.add('El desperdicio debe estar entre 0% y 30%.');
     }
-    if (bedrooms < 0 || bathrooms < 0 || kitchens < 0 || parkingSpaces < 0) {
-      errors.add('Las cantidades de espacios no pueden ser negativas.');
+
+    final cfg = policy;
+
+    if (cfg.isRequired(BuildingField.floors)) {
+      final min = cfg.ruleFor(BuildingField.floors).min?.toInt() ?? 1;
+      final max = cfg.ruleFor(BuildingField.floors).max?.toInt() ?? 30;
+      if (floors < min || floors > max) {
+        errors.add('El número de plantas debe estar entre $min y $max.');
+      }
     }
+
+    if (cfg.isVisible(BuildingField.bedrooms) && cfg.isRequired(BuildingField.bedrooms)) {
+      if (bedrooms == null || bedrooms! < 1) {
+        errors.add('Ingresa al menos un dormitorio.');
+      }
+    }
+
+    if (cfg.isVisible(BuildingField.clearHeight) && cfg.isRequired(BuildingField.clearHeight)) {
+      final min = cfg.ruleFor(BuildingField.clearHeight).min ?? 2.5;
+      if (clearHeight == null || clearHeight! < min) {
+        errors.add('Ingresa la altura libre de la bodega (mín. ${min}m).');
+      }
+    }
+
+    if (cfg.isVisible(BuildingField.apartmentsPerFloor) &&
+        cfg.isRequired(BuildingField.apartmentsPerFloor)) {
+      if (apartmentsPerFloor == null || apartmentsPerFloor! < 1) {
+        errors.add('Ingresa el número de departamentos por planta.');
+      }
+    }
+
+    if (cfg.isVisible(BuildingField.commercialUnits) &&
+        cfg.isRequired(BuildingField.commercialUnits)) {
+      if (commercialUnits == null || commercialUnits! < 1) {
+        errors.add('Ingresa el número de locales por planta.');
+      }
+    }
+
     return errors;
   }
 }
