@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'dart:ui';
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'hugging_face_image_service.dart';
+import 'hf_replicate_image_service.dart';
 
 class AiImageResult {
   final File file;
@@ -12,8 +12,8 @@ class AiImageResult {
   AiImageResult({required this.file, required this.source});
 }
 
-final huggingFaceImageServiceProvider = Provider<HuggingFaceImageService>((ref) {
-  return HuggingFaceImageService();
+final replicateImageServiceProvider = Provider<HfReplicateImageService>((ref) {
+  return HfReplicateImageService();
 });
 
 final constructionImageControllerProvider =
@@ -28,15 +28,16 @@ class ConstructionImageController extends AsyncNotifier<AiImageResult?> {
   Future<void> generate({required String prompt}) async {
     state = const AsyncLoading();
     try {
-      final service = ref.read(huggingFaceImageServiceProvider);
+      final service = ref.read(replicateImageServiceProvider);
       final file = await service.generateConstructionImage(prompt: prompt);
       state = AsyncData(AiImageResult(file: file, source: 'ai'));
     } catch (e) {
+      debugPrint('=== Error generando imagen con IA: $e ===');
       try {
         final file = await _generatePlaceholder();
         state = AsyncData(AiImageResult(file: file, source: 'placeholder'));
       } catch (innerErr) {
-        state = AsyncError('No se pudo generar la imagen ni cargar el placeholder', StackTrace.current);
+        state = AsyncError('No se pudo generar la imagen ni cargar el placeholder: $innerErr', StackTrace.current);
       }
     }
   }
