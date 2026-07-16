@@ -10,13 +10,98 @@ export default function ResetPasswordPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    let active = true
+
+    const showError = (message: string) => {
+      if (!active) return
+
+      setErrorMsg(message)
+      setView('error')
+    }
+
+    const checkRecoverySession = async () => {
+      const queryParams = new URLSearchParams(
+        window.location.search,
+      )
+
+      const hashParams = new URLSearchParams(
+        window.location.hash.replace(/^#/, ''),
+      )
+
+      const urlError =
+        queryParams.get('error_description') ??
+        hashParams.get('error_description')
+
+      if (urlError) {
+        showError(
+          decodeURIComponent(
+            urlError.replace(/\+/g, ' '),
+          ),
+        )
+        return
+      }
+
+      const { data, error } =
+          await supabase.auth.getSession()
+
+      if (!active) return
+
+      if (error) {
+        showError(
+          'No se pudo validar la sesión de recuperación.',
+        )
+        return
+      }
+
+      if (data.session) {
         setView('form')
       }
-    })
+    }
 
-    return () => subscription.unsubscribe()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!active) return
+
+        if (
+          event === 'PASSWORD_RECOVERY' ||
+          (
+            (
+              event === 'INITIAL_SESSION' ||
+              event === 'SIGNED_IN'
+            ) &&
+            session
+          )
+        ) {
+          setView('form')
+        }
+      },
+    )
+
+    void checkRecoverySession()
+
+    const timeout = window.setTimeout(() => {
+      if (!active) return
+
+      setView(currentView => {
+        if (currentView !== 'loading') {
+          return currentView
+        }
+
+        setErrorMsg(
+          'El enlace es inválido, expiró o ya fue utilizado.',
+        )
+
+        return 'error'
+      })
+    }, 8000)
+
+    return () => {
+      active = false
+      window.clearTimeout(timeout)
+      subscription.unsubscribe()
+    }
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
