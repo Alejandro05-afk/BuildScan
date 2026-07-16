@@ -4,9 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 class BuildScanColors {
   static const tealDark = Color(0xFF0F3D3E);
   static const teal = Color(0xFF0B7A75);
-  static const orange = Color(0xFFF28C28);
-  static const background = Color(0xFFF2F2F2);
-  static const textDark = Color(0xFF1F2933);
+  static const orange = Color(0xFFFF8A00); // Protagonist Orange
+  static const orangeLight = Color(0xFFFFF8F2); // Warm light orange accent
+  static const background = Color(0xFFFFF8F2); // Soft warm clear background
+  static const textDark = Color(0xFF1F2937);
 }
 
 class BuildScanTheme {
@@ -16,9 +17,9 @@ class BuildScanTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: BuildScanColors.teal,
-        primary: BuildScanColors.teal,
-        secondary: BuildScanColors.orange,
+        seedColor: BuildScanColors.orange,
+        primary: BuildScanColors.orange,
+        secondary: BuildScanColors.teal,
       ),
       scaffoldBackgroundColor: BuildScanColors.background,
       

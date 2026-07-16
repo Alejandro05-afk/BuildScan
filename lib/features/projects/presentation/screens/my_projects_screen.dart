@@ -64,13 +64,22 @@ class MyProjectsScreen extends ConsumerWidget {
                       );
                     },
                     onDismissed: (direction) async {
-                      final repo = ref.read(projectRepositoryProvider);
-                      await repo.deleteProject(proj.id);
-                      ref.invalidate(myProjectsProvider);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('"${proj.nombre}" eliminado')),
-                        );
+                      try {
+                        final repo = ref.read(projectRepositoryProvider);
+                        await repo.deleteProject(proj.id);
+                        ref.invalidate(myProjectsProvider);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('"${proj.nombre}" eliminado')),
+                          );
+                        }
+                      } catch (e) {
+                        ref.invalidate(myProjectsProvider);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error al eliminar: $e')),
+                          );
+                        }
                       }
                     },
                     background: Container(

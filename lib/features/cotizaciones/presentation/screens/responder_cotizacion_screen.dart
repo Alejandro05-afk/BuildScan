@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/cotizacion_provider.dart';
@@ -47,6 +48,52 @@ class _ResponderCotizacionScreenState extends ConsumerState<ResponderCotizacionS
   }
 
   Future<void> _enviarCotizacion() async {
+    // Validate no empty materials
+    if (_materiales.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No hay materiales para cotizar')),
+        );
+      }
+      return;
+    }
+
+    // Validate all prices are filled and > 0
+    for (var i = 0; i < _materiales.length; i++) {
+      final priceText = _priceControllers[i].text.trim();
+      if (priceText.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ingresa el precio de "${_materiales[i]['nombre']}"')),
+          );
+        }
+        return;
+      }
+      final price = double.tryParse(priceText);
+      if (price == null || price <= 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('El precio de "${_materiales[i]['nombre']}" debe ser mayor a 0')),
+          );
+        }
+        return;
+      }
+    }
+
+    // Confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirmar envío'),
+        content: Text('¿Enviar cotización con ${_materiales.length} material(es)?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Enviar')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
     setState(() => _isLoading = true);
     try {
       final repo = ref.read(cotizacionRepositoryProvider);
@@ -83,6 +130,22 @@ class _ResponderCotizacionScreenState extends ConsumerState<ResponderCotizacionS
   }
 
   Future<void> _rechazarSolicitud() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rechazar solicitud'),
+        content: const Text('¿Estás seguro de rechazar esta solicitud de cotización?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Rechazar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
     setState(() => _isLoading = true);
     try {
       final repo = ref.read(cotizacionRepositoryProvider);
@@ -112,7 +175,18 @@ class _ResponderCotizacionScreenState extends ConsumerState<ResponderCotizacionS
             ),
           ),
           Expanded(
-            child: ListView.builder(
+            child: _materiales.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text('No hay materiales en esta proforma.', style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
               itemCount: _materiales.length,
               itemBuilder: (context, index) {
                 final mat = _materiales[index];
@@ -124,6 +198,9 @@ class _ResponderCotizacionScreenState extends ConsumerState<ResponderCotizacionS
                     child: TextField(
                       controller: _priceControllers[index],
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                      ],
                       decoration: const InputDecoration(
                         labelText: 'Precio',
                         prefixText: '\$ ',

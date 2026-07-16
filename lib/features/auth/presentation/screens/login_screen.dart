@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/buildscan_login_animation.dart';
 import '../../../../core/widgets/clay_input_field.dart';
 import '../../../../core/widgets/clay_submit_button.dart';
 
@@ -60,6 +61,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const BuildScanLoginAnimation(),
+                const SizedBox(height: 24),
                 ClayInputField(
                   controller: _emailController,
                   labelText: 'Email',

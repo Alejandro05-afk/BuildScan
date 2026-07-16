@@ -80,6 +80,18 @@ class QuotesListScreen extends ConsumerWidget {
                                     child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                                       onPressed: () async {
+                                        final confirmed = await showDialog<bool>(
+                                          context: context,
+                                          builder: (ctx) => AlertDialog(
+                                            title: const Text('Aceptar cotización'),
+                                            content: Text('¿Aceptar la cotización de "${ferreteria?['nombre_comercial'] ?? 'esta ferretería'}"? Las demás serán rechazadas automáticamente.'),
+                                            actions: [
+                                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                                              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Aceptar')),
+                                            ],
+                                          ),
+                                        );
+                                        if (confirmed != true) return;
                                         try {
                                           await ref.read(cotizacionRepositoryProvider).aceptarCotizacion(cot['id'], proformaId);
                                           ref.invalidate(cotizacionesConstructoraProvider);
@@ -96,6 +108,21 @@ class QuotesListScreen extends ConsumerWidget {
                                     child: OutlinedButton(
                                       style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
                                       onPressed: () async {
+                                        final confirmed = await showDialog<bool>(
+                                          context: context,
+                                          builder: (ctx) => AlertDialog(
+                                            title: const Text('Rechazar cotización'),
+                                            content: const Text('¿Estás seguro de rechazar esta cotización?'),
+                                            actions: [
+                                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(ctx, true),
+                                                child: const Text('Rechazar', style: TextStyle(color: Colors.red)),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        if (confirmed != true) return;
                                         try {
                                           await ref.read(cotizacionRepositoryProvider).rechazarCotizacion(cot['id']);
                                           ref.invalidate(cotizacionesConstructoraProvider);

@@ -90,7 +90,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/responder-cotizacion',
         builder: (context, state) {
-          final solicitud = state.extra as Map<String, dynamic>;
+          final solicitud = state.extra;
+          if (solicitud is! Map<String, dynamic>) {
+            return const Scaffold(
+              body: Center(child: Text('Error: datos de solicitud no válidos.')),
+            );
+          }
           return ResponderCotizacionScreen(solicitud: solicitud);
         },
       ),

@@ -168,8 +168,10 @@ class _BuildingProformaPreviewScreenState extends ConsumerState<BuildingProforma
       }).toList();
 
       // 1. Crear Proforma en BD
+      final proyectoId = project.id;
+      if (proyectoId == null) throw Exception('El proyecto no tiene un ID válido.');
       final proformaId = await repo.crearProforma(
-        proyectoId: project.id!,
+        proyectoId: proyectoId,
         constructoraId: user.id,
         nombre: 'Cotización - ${project.name}',
         materialesJson: materialesJson,

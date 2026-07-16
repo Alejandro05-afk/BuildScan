@@ -9,6 +9,9 @@ class CotizacionRepository {
     required List<String> ferreteriasIds,
     String? mensaje,
   }) async {
+    if (ferreteriasIds.isEmpty) {
+      throw Exception('No se seleccionaron ferreterías para enviar la solicitud.');
+    }
     // Evitar solicitudes duplicadas
     for (final ferreteriaId in ferreteriasIds) {
       final existentes = await client
