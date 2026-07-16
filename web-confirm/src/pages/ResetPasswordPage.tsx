@@ -14,88 +14,65 @@ export default function ResetPasswordPage() {
 
     const showError = (message: string) => {
       if (!active) return
-
       setErrorMsg(message)
       setView('error')
     }
 
-    const checkRecoverySession = async () => {
-      const queryParams = new URLSearchParams(
-        window.location.search,
-      )
-
-      const hashParams = new URLSearchParams(
-        window.location.hash.replace(/^#/, ''),
-      )
-
-      const urlError =
-        queryParams.get('error_description') ??
-        hashParams.get('error_description')
-
-      if (urlError) {
-        showError(
-          decodeURIComponent(
-            urlError.replace(/\+/g, ' '),
-          ),
-        )
-        return
-      }
-
-      const { data, error } =
-          await supabase.auth.getSession()
-
+    const showForm = () => {
       if (!active) return
-
-      if (error) {
-        showError(
-          'No se pudo validar la sesión de recuperación.',
-        )
-        return
-      }
-
-      if (data.session) {
-        setView('form')
-      }
+      setView('form')
     }
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!active) return
+    async function handleReset() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) { showForm(); return }
 
-        if (
-          event === 'PASSWORD_RECOVERY' ||
-          (
-            (
-              event === 'INITIAL_SESSION' ||
-              event === 'SIGNED_IN'
-            ) &&
-            session
-          )
-        ) {
-          setView('form')
+      const hashRaw = window.location.hash.replace(/^#/, '')
+      if (hashRaw) {
+        const hashParams = new URLSearchParams(hashRaw)
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+          if (!error) { showForm(); return }
         }
-      },
-    )
+      }
 
-    void checkRecoverySession()
+      const queryParams = new URLSearchParams(window.location.search)
+      const code = queryParams.get('code')
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (!error) { showForm(); return }
+      }
+
+      const urlError = queryParams.get('error_description')
+      if (urlError) {
+        showError(decodeURIComponent(urlError.replace(/\+/g, ' ')))
+        return
+      }
+
+      showError('El enlace es inválido, expiró o ya fue utilizado.')
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return
+      if (event === 'PASSWORD_RECOVERY') { showForm(); return }
+      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session) { showForm() }
+    })
+
+    void handleReset()
 
     const timeout = window.setTimeout(() => {
       if (!active) return
-
-      setView(currentView => {
-        if (currentView !== 'loading') {
-          return currentView
-        }
-
-        setErrorMsg(
-          'El enlace es inválido, expiró o ya fue utilizado.',
-        )
-
+      setView(current => {
+        if (current !== 'loading') return current
+        setErrorMsg('El enlace es inválido, expiró o ya fue utilizado.')
         return 'error'
       })
-    }, 8000)
+    }, 10000)
 
     return () => {
       active = false
