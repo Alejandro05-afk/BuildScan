@@ -93,7 +93,7 @@ class BuildingProjectFormScreen extends ConsumerWidget {
     // Render error as a bottom/top banner or helper, but keep the step visible
     final errorWidget = state.errorMessage != null
         ? Container(
-            margin: const EdgeInsets.bottom(16),
+            margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.red.shade100,
