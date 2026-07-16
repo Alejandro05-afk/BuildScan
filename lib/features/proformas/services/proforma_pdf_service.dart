@@ -177,8 +177,8 @@ class ProformaPdfService {
                 pw.Text('Tipo: ${_buildingTypeLabel(project.buildingType)}'),
                 pw.Text('Área construida: ${project.totalArea.toStringAsFixed(0)} m²'),
                 pw.Text('Plantas: ${project.floors}'),
-                pw.Text('Sistema constructivo: ${project.constructionSystem.name}'),
-                pw.Text('Nivel de acabados: ${project.finishLevel.name}'),
+                pw.Text('Sistema constructivo: ${project.constructionSystem.toString().split('.').last}'),
+                pw.Text('Nivel de acabados: ${project.finishLevel.toString().split('.').last}'),
                 // Dynamic fields from policy:
                 ..._buildingProjectDetails(project),
               ],
@@ -223,7 +223,7 @@ class ProformaPdfService {
   /// Returns policy-driven detail rows for a complete building project PDF.
   /// Omits null values and fields invisible for the building type.
   List<pw.Widget> _buildingProjectDetails(BuildingProject project) {
-    final cfg = configForType(project.buildingType.policyKey);
+    final cfg = configForType(project.buildingType.toString().split('.').last);
     final rows = <pw.Widget>[];
 
     void addRow(String label, String value) {
