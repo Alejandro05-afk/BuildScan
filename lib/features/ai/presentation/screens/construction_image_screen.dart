@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/ai_prompt_service.dart';
 import '../../services/construction_image_provider.dart';
 import '../../../projects/presentation/providers/project_form_provider.dart';
-import '../../../calculation/domain/entities/project_dimensions.dart';
 import '../../../projects/presentation/providers/projects_provider.dart';
+import '../../../calculation/domain/entities/project_dimensions.dart' show ElementType;
 import '../../../../core/services/storage_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -22,12 +22,7 @@ class ConstructionImageScreen extends ConsumerWidget {
     final form = ref.watch(projectFormProvider);
     final imageState = ref.watch(constructionImageControllerProvider);
 
-    final dimensions = ProjectDimensions(
-      elementType: form.tipoConstruccion,
-      largo: form.largo,
-      ancho: form.ancho,
-      alto: form.alto,
-    );
+    final dimensions = form.toDimensions();
     final area = form.largo * form.ancho;
 
     return Scaffold(
@@ -64,6 +59,7 @@ class ConstructionImageScreen extends ConsumerWidget {
                       final prompt = promptService.buildConstructionPrompt(
                         type: form.tipoConstruccion,
                         dimensions: dimensions,
+                        nombre: form.nombre,
                       );
                       ref
                           .read(constructionImageControllerProvider.notifier)
@@ -177,12 +173,8 @@ class ConstructionImageScreen extends ConsumerWidget {
                   ref.read(constructionImageControllerProvider.notifier).generate(
                     prompt: ref.read(aiPromptServiceProvider).buildConstructionPrompt(
                       type: ref.read(projectFormProvider).tipoConstruccion,
-                      dimensions: ProjectDimensions(
-                        elementType: ref.read(projectFormProvider).tipoConstruccion,
-                        largo: ref.read(projectFormProvider).largo,
-                        ancho: ref.read(projectFormProvider).ancho,
-                        alto: ref.read(projectFormProvider).alto,
-                      ),
+                      dimensions: ref.read(projectFormProvider).toDimensions(),
+                      nombre: ref.read(projectFormProvider).nombre,
                     ),
                   );
                 },

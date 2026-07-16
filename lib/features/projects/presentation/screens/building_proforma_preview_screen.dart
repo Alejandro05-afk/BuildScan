@@ -135,7 +135,7 @@ class _BuildingProformaPreviewScreenState extends ConsumerState<BuildingProforma
                 ElevatedButton.icon(
                   onPressed: () => _generarYSolicitarCotizacion(context, ref, project, calc),
                   icon: const Icon(Icons.send_and_archive),
-                  label: const Text('Generar PDF y Solicitar Cotización'),
+                  label: const Text('Solicitar Cotización'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Colors.teal,

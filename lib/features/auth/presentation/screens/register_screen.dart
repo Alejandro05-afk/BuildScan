@@ -35,6 +35,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registro exitoso')));
+        context.go('/login');
       }
     } catch (e) {
       if (mounted) {
