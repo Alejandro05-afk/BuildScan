@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../widgets/buildscan_handshake_hero.dart';
+import '../../../home/presentation/widgets/buildscan_handshake_hero.dart';
 
 class ConstructorHomeScreen extends ConsumerWidget {
   const ConstructorHomeScreen({super.key});
