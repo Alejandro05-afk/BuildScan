@@ -96,8 +96,13 @@ class QuotesListScreen extends ConsumerWidget {
                                     child: OutlinedButton(
                                       style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
                                       onPressed: () async {
-                                        await ref.read(cotizacionRepositoryProvider).rechazarCotizacion(cot['id']);
-                                        ref.invalidate(cotizacionesConstructoraProvider);
+                                        try {
+                                          await ref.read(cotizacionRepositoryProvider).rechazarCotizacion(cot['id']);
+                                          ref.invalidate(cotizacionesConstructoraProvider);
+                                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cotización rechazada.')));
+                                        } catch (e) {
+                                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                        }
                                       },
                                       child: const Text('Rechazar'),
                                     ),

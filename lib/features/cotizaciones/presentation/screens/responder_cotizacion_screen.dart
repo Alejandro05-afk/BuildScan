@@ -38,6 +38,14 @@ class _ResponderCotizacionScreenState extends ConsumerState<ResponderCotizacionS
     }
   }
 
+  @override
+  void dispose() {
+    for (final ctrl in _priceControllers) {
+      ctrl.dispose();
+    }
+    super.dispose();
+  }
+
   Future<void> _enviarCotizacion() async {
     setState(() => _isLoading = true);
     try {

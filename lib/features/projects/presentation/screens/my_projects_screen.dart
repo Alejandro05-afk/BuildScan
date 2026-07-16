@@ -151,15 +151,20 @@ class MyProjectsScreen extends ConsumerWidget {
     String text;
     
     switch (status) {
-      case 'saved':
+      case 'activo':
+        color = Colors.green.shade700;
+        bgColor = Colors.green.shade50;
+        text = 'Activo';
+        break;
+      case 'cotizado':
         color = Colors.blue.shade700;
         bgColor = Colors.blue.shade50;
-        text = 'Guardado';
+        text = 'Cotizado';
         break;
-      case 'quotation_requested':
+      case 'en_progreso':
         color = Colors.orange.shade800;
         bgColor = Colors.orange.shade50;
-        text = 'Cotizando';
+        text = 'En Progreso';
         break;
       default:
         color = Colors.grey.shade700;

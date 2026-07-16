@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -20,7 +21,7 @@ class HuggingFaceImageService {
     const maxRetries = 3;
     for (var attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        print('=== HuggingFace intento $attempt de $maxRetries ===');
+        debugPrint('=== HuggingFace intento $attempt de $maxRetries ===');
         final response = await _dio.post<List<int>>(
           _endpoint,
           data: {
@@ -47,12 +48,12 @@ class HuggingFaceImageService {
         await file.writeAsBytes(Uint8List.fromList(response.data!));
         return file;
       } on DioException catch (e) {
-        print('=== HuggingFace error intento $attempt: ${e.type} ===');
+        debugPrint('=== HuggingFace error intento $attempt: ${e.type} ===');
         if (attempt == maxRetries) {
           final msg = 'DioError [${e.type}]: ${e.message}\n'
               'URI: ${e.requestOptions.uri}\n'
               'Status: ${e.response?.statusCode}';
-          print('=== HuggingFace ERROR FINAL ===\n$msg');
+          debugPrint('=== HuggingFace ERROR FINAL ===\n$msg');
           rethrow;
         }
         await Future.delayed(Duration(seconds: attempt * 5));

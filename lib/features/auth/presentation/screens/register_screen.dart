@@ -5,7 +5,6 @@ import '../providers/auth_provider.dart';
 import '../../../../core/widgets/clay_input_field.dart';
 import '../../../../core/widgets/clay_submit_button.dart';
 import '../../../../core/widgets/password_strength_indicator.dart';
-import '../../../../core/widgets/password_strength_indicator.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -44,6 +43,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _nombreController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override

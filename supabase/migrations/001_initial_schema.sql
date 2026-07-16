@@ -59,11 +59,13 @@ CREATE TABLE IF NOT EXISTS public.solicitudes_cotizacion (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     proforma_id UUID NOT NULL REFERENCES public.proformas(id) ON DELETE CASCADE,
     ferreteria_id UUID NOT NULL REFERENCES public.ferreterias(id) ON DELETE CASCADE,
-    estado TEXT DEFAULT 'enviada', -- enviada, cotizada, aceptada, rechazada
+    estado TEXT DEFAULT 'enviada',
     total_cotizado DOUBLE PRECISION,
+    mensaje TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(proforma_id, ferreteria_id) -- Evita duplicados
+    UNIQUE(proforma_id, ferreteria_id), -- Evita duplicados
+    CONSTRAINT solicitudes_cotizacion_estado_check CHECK (estado IN ('enviada', 'cotizada', 'aceptada', 'rechazada'))
 );
 
 -- 6. detalles_cotizacion (precios de la ferreteria)

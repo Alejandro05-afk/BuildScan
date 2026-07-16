@@ -59,7 +59,7 @@ class FerreteriaHomeScreen extends ConsumerWidget {
                       child: Icon(Icons.request_quote, color: Colors.white),
                     ),
                     title: Text(nombreProyecto, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Estado: ${estado.toString().toUpperCase()}\nFecha: ${sol['created_at'].toString().substring(0, 10)}'),
+                    subtitle: Text('Estado: ${estado.toString().toUpperCase()}\nFecha: ${sol['created_at']?.toString().substring(0, 10) ?? 'N/A'}'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
                       if (estado == 'enviada') {
